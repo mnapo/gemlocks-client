@@ -6,8 +6,9 @@ import HomeScreen from "../screens/HomeScreen";
 import MatchScreen from "../screens/MatchScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
+import { RootStackParamList } from './types';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const { user } = useAuth();
