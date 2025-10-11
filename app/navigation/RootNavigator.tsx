@@ -5,6 +5,7 @@ import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
 import MatchScreen from "../screens/MatchScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import InstructionsScreen from "../screens/InstructionsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -16,8 +17,9 @@ export default function RootNavigator() {
       {user ? (
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Game" component={MatchScreen} />
+          <Stack.Screen name="Match" component={MatchScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Instructions" component={InstructionsScreen} />
         </>
       ) : (
         <>
