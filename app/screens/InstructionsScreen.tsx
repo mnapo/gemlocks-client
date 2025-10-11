@@ -9,7 +9,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Match'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Instructions'>;
 
 interface InstructionItem {
   id: string;
@@ -21,31 +21,29 @@ interface InstructionItem {
 const data: InstructionItem[] = [
   {
     id: '1',
-    title: 'Elige tu código secreto',
-    description: 'Selecciona 4 cifras distintas del 0 al 9. Tu rival intentará adivinarlo.',
+    title: 'Choose your secret code',
+    description: 'Select 4 unique digits from 0 to 9. Your opponent will try to guess it.',
     image: require('../../assets/tutorial/placeholder.gif'),
   },
   {
     id: '2',
-    title: 'Haz tus intentos',
-    description: 'Adivina el código del rival. Cada intento revela pistas: Perfectos y Regulares.',
+    title: 'Make your guesses',
+    description: 'Try to guess your opponent’s code. Each attempt reveals Perfect and Regular clues.',
     image: require('../../assets/tutorial/placeholder.gif'),
   },
   {
     id: '3',
-    title: 'Usa pistas sabiamente',
-    description: 'Puedes pedir 4 códigos sugeridos, ¡elige con cuidado!',
+    title: 'Use hints wisely',
+    description: 'You can request 4 suggested codes — choose carefully!',
     image: require('../../assets/tutorial/placeholder.gif'),
   },
   {
     id: '4',
-    title: 'Gana la partida',
-    description: 'Obtén 4 perfectos antes que tu oponente. Si empatan, ¡hay gloria compartida!',
+    title: 'Win the match',
+    description: 'Get 4 perfects before your opponent. If both get 4, glory is shared!',
     image: require('../../assets/tutorial/placeholder.gif'),
   },
 ];
-
-
 
 export default function InstructionsScreen({ navigation }: Props) {
   return (
@@ -100,8 +98,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   description: {
-    fontFamily: 'Audiowide_400Regular',
-    fontSize: 15,
+    fontFamily: 'Arial',
+    fontSize: 17,
+    fontWeight: '600',
     color: theme.colors.text,
     textAlign: 'center',
     marginTop: 10,
