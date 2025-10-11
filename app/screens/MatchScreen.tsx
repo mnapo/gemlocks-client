@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
 
-export default function GameScreen({ navigation }: any) {
+export default function MatchScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Match in progress</Text>
