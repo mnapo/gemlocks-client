@@ -1,42 +1,38 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
-import { useAuth } from "../hooks/useAuth";
+import React from 'react';
+import { TextInput, StyleSheet } from 'react-native';
+import { ScreenWrapper } from '../components/ScreenWrapper';
+import { NeonButton } from '../components/NeonButton';
+import { theme } from '../theme/colors';
+import type { RootStackParamList } from '../navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export default function LoginScreen() {
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+export default function LoginScreen({ navigation }: Props) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Gemlocks</Text>
-      <TextInput
-        placeholder="Email"
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
+    <ScreenWrapper title="Gemlocks" centered>
+      <TextInput placeholder="Email" placeholderTextColor={theme.colors.textDim} style={styles.input} />
+      <TextInput placeholder="Password" placeholderTextColor={theme.colors.textDim} secureTextEntry style={styles.input} />
+      <NeonButton title="Login" onPress={() => navigation.navigate('Home')} />
+      <NeonButton
+        title="Signup"
+        onPress={() => {}}
+        color={theme.colors.secondary}
       />
-      <TextInput
-        placeholder="Password"
-        style={styles.input}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Login" onPress={() => login(email, password)} />
-    </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
   input: {
-    width: "100%",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    borderColor: theme.colors.primary,
+    borderRadius: 10,
+    color: theme.colors.text,
+    fontSize: 16,
+    padding: 12,
+    marginVertical: 8,
+    width: '80%',
+    fontFamily: 'Orbitron_700Bold',
   },
 });

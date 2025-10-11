@@ -1,60 +1,114 @@
-import React from "react";
-import { View, Text, Image, Dimensions, StyleSheet } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
-import ScreenWrapper from "../components/ScreenWrapper";
-import colors from "../theme/colors";
+import React from 'react';
+import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
+import { ScreenWrapper } from '../components/ScreenWrapper';
+import { theme } from '../theme/colors';
+import { NeonButton } from '../components/NeonButton';
+import type { RootStackParamList } from '../navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-const width = Dimensions.get("window").width * 0.9;
+const { width } = Dimensions.get('window');
 
-const slides = [
+type Props = NativeStackScreenProps<RootStackParamList, 'Match'>;
+
+interface InstructionItem {
+  id: string;
+  title: string;
+  description: string;
+  image: any;
+}
+
+const data: InstructionItem[] = [
   {
-    title: "Build your code",
-    desc: "Pick a secret 4-digit code with unique digits. Your rival will try to guess it!",
-    img: require("../../assets/tutorial/placeholder.gif"),
+    id: '1',
+    title: 'Elige tu código secreto',
+    description: 'Selecciona 4 cifras distintas del 0 al 9. Tu rival intentará adivinarlo.',
+    image: require('../../assets/tutorial/placeholder.gif'),
   },
   {
-    title: "Make guesses",
-    desc: "Try to guess your rival's. After each guess, you'll get feedback.",
-    img: require("../../assets/tutorial/placeholder.gif"),
+    id: '2',
+    title: 'Haz tus intentos',
+    description: 'Adivina el código del rival. Cada intento revela pistas: Perfectos y Regulares.',
+    image: require('../../assets/tutorial/placeholder.gif'),
   },
   {
-    title: "Win with precision",
-    desc: "Get 4 Perfects (correct digit in the correct spot) to win!",
-    img: require("../../assets/tutorial/placeholder.gif"),
+    id: '3',
+    title: 'Usa pistas sabiamente',
+    description: 'Puedes pedir 4 códigos sugeridos, ¡elige con cuidado!',
+    image: require('../../assets/tutorial/placeholder.gif'),
+  },
+  {
+    id: '4',
+    title: 'Gana la partida',
+    description: 'Obtén 4 perfectos antes que tu oponente. Si empatan, ¡hay gloria compartida!',
+    image: require('../../assets/tutorial/placeholder.gif'),
   },
 ];
 
-export default function InstructionsScreen() {
+
+
+export default function InstructionsScreen({ navigation }: Props) {
   return (
-    <ScreenWrapper>
-      <Carousel
-        loop
-        width={width}
-        height={400}
-        autoPlay
-        autoPlayInterval={5000}
-        data={slides}
-        scrollAnimationDuration={800}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Image source={item.img} style={styles.image} resizeMode="contain" />
-            <Text style={styles.desc}>{item.desc}</Text>
-          </View>
-        )}
+    <ScreenWrapper title="Instrucciones">
+      <View style={styles.carouselContainer}>
+        <Carousel
+          loop
+          width={width * 0.85}
+          height={420}
+          autoPlay={false}
+          data={data}
+          scrollAnimationDuration={800}
+          renderItem={({ item }) => (
+            <View style={styles.slide}>
+              <Text style={styles.slideTitle}>{item.title}</Text>
+              <Image source={item.image} style={styles.image} resizeMode="contain" />
+              <Text style={styles.description}>{item.description}</Text>
+            </View>
+          )}
+        />
+      </View>
+      <NeonButton
+        title="Back to Lobby"
+        onPress={() => navigation.navigate('Home')}
       />
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  slide: {
+  carouselContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  title: { color: colors.primary, fontSize: 22, fontWeight: "600", marginBottom: 15 },
-  image: { width: 220, height: 220, marginBottom: 20 },
-  desc: { color: colors.text, textAlign: "center", fontSize: 16, paddingHorizontal: 20 },
+  slide: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  slideTitle: {
+    fontFamily: 'Orbitron_700Bold',
+    fontSize: 20,
+    color: theme.colors.primary,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  description: {
+    fontFamily: 'Audiowide_400Regular',
+    fontSize: 15,
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  image: {
+    width: 200,
+    height: 150,
+    marginVertical: 10,
+  },
 });

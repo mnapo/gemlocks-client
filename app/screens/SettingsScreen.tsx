@@ -1,16 +1,46 @@
-import React from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import React from 'react';
+import { Text, Switch, StyleSheet, View } from 'react-native';
+import { ScreenWrapper } from '../components/ScreenWrapper';
+import { theme } from '../theme/colors';
+import { NeonButton } from '../components/NeonButton';
+import type { RootStackParamList } from '../navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export default function SettingsScreen({ navigation }: any) {
+type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+
+export default function SettingsScreen({ navigation }: Props) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
-      <Button title="Back" onPress={() => navigation.goBack()} />
-    </View>
+    <ScreenWrapper title="Settings" scrollable>
+      <View style={styles.option}>
+        <Text style={styles.text}>Sounds</Text>
+        <Switch thumbColor={theme.colors.primary} />
+      </View>
+      <View style={styles.option}>
+        <Text style={styles.text}>Vibration</Text>
+        <Switch thumbColor={theme.colors.secondary} />
+      </View>
+      <View style={styles.option}>
+        <Text style={styles.text}>Dark Mode</Text>
+        <Switch thumbColor={theme.colors.primary} />
+      </View>
+      <NeonButton
+        title="Back to Lobby"
+        onPress={() => navigation.navigate('Home')}
+      />
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 20, marginBottom: 10 },
+  option: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 16,
+    paddingHorizontal: 10,
+  },
+  text: {
+    color: theme.colors.text,
+    fontSize: 18,
+    fontFamily: 'Orbitron_700Bold',
+  },
 });

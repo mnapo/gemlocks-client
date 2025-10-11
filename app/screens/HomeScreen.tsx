@@ -1,45 +1,29 @@
-import React from "react";
-import { Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useAuth } from "../hooks/useAuth";
-import ScreenWrapper from "../components/ScreenWrapper";
-import colors from "../theme/colors";
+import React from 'react';
+import { ScreenWrapper } from '../components/ScreenWrapper';
+import { NeonButton } from '../components/NeonButton';
+import { theme } from '../theme/colors';
+import type { RootStackParamList } from '../navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export default function HomeScreen({ navigation }: any) {
-  const { user, logout } = useAuth();
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+export default function HomeScreen({ navigation }: Props) {
   return (
-    <ScreenWrapper>
-      <Text style={styles.title}>Welcome, {user?.email}</Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Match")}>
-        <Text style={styles.buttonText}>🎮 New Match</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Instructions")}>
-        <Text style={styles.buttonText}>📘 How to Play</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Settings")}>
-        <Text style={styles.buttonText}>⚙️ Settings</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logout} onPress={logout}>
-        <Text style={styles.logoutText}>Exit</Text>
-      </TouchableOpacity>
+    <ScreenWrapper title="GEMLOCKS" centered>
+      <NeonButton
+        title="New Match"
+        onPress={() => navigation.navigate('Match')}
+        color={theme.colors.primary}
+      />
+      <NeonButton
+        title="Instructions"
+        onPress={() => navigation.navigate('Instructions')}
+        color={theme.colors.secondary}
+      />
+      <NeonButton
+        title="Settings"
+        onPress={() => navigation.navigate('Settings')}
+      />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: "600", color: colors.primary, marginBottom: 40, textAlign: "center" },
-  button: {
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    marginBottom: 12,
-    alignItems: "center",
-  },
-  buttonText: { color: colors.text, fontSize: 18 },
-  logout: { marginTop: 40, alignSelf: "center" },
-  logoutText: { color: colors.dimmed },
-});
