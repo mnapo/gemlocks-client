@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
   text: {
     color: theme.colors.text,
     fontSize: 18,
-    fontFamily: 'Orbitron_700Bold',
+    fontFamily: 'Orbitron_400Regular',
   },
 });
