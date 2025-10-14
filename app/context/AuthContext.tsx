@@ -1,37 +1,51 @@
-import React, { createContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import client from "../api/feathersClient";
 
 interface AuthContextProps {
-  user: { id: number; email: string } | null;
+  user: any;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);
+export const AuthContext = createContext<AuthContextProps>({
+  user: null,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthContextProps["user"]>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    (async () => {
-      const storedUser = await AsyncStorage.getItem("user");
-      if (storedUser) setUser(JSON.parse(storedUser));
-    })();
+    const reauthenticate = async () => {
+      try {
+        const { user } = await client.reAuthenticate();
+        setUser(user);
+      } catch {
+        setUser(null);
+      }
+    };
+    reauthenticate();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const fakeUser = { id: 1, email };
-    await AsyncStorage.setItem("user", JSON.stringify(fakeUser));
-    setUser(fakeUser);
+    const { user } = await client.authenticate({
+      strategy: "local",
+      email,
+      password,
+    });
+    setUser(user);
   };
 
   const register = async (email: string, password: string) => {
+    await client.service("users").create({ email, password });
     await login(email, password);
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem("user");
+    await client.logout();
     setUser(null);
   };
 

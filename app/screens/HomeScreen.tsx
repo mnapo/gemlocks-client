@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { View, Text, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 import { NeonButton } from '../components/NeonButton';
 import { ScreenWrapper } from '../components/ScreenWrapper';
@@ -44,6 +45,8 @@ const Particle = ({ x, y, size }: { x: number; y: number; size: number }) => {
 };
 
 export default function HomeScreen({ navigation }: Props) {
+  const { logout } = useAuth();
+
   const glow = useSharedValue(0);
 
   useEffect(() => {
@@ -81,27 +84,36 @@ export default function HomeScreen({ navigation }: Props) {
         resizeMode="cover"
         imageStyle={{ opacity: 0.4 }}
       >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
 
-        {particlesArray}
+          {particlesArray}
 
-        <Animated.View style={styles.titleContainer}>
-          <Animated.Text style={[styles.title, titleStyle]}>Gemlocks</Animated.Text>
-          <Text style={styles.subtitle}>Think fast, crack codes, unlock gems!</Text>
-        </Animated.View>
-
-
-        <View style={styles.buttonsContainer}>
-          <Animated.View style={buttonStyle}>
-            <NeonButton title="Quick Match" onPress={() => navigation.navigate('Match')} />
+          <Animated.View style={styles.titleContainer}>
+            <Animated.Text style={[styles.title, titleStyle]}>Gemlocks</Animated.Text>
+            <Text style={styles.subtitle}>Think fast, crack codes, unlock gems!</Text>
           </Animated.View>
-          <Animated.View style={buttonStyle}>
-            <NeonButton title="Instructions" onPress={() => navigation.navigate('Instructions')} />
-          </Animated.View>
-          <Animated.View style={buttonStyle}>
-            <NeonButton title="Settings" onPress={() => navigation.navigate('Settings')} />
-          </Animated.View>
-        </View>
+
+
+          <View style={styles.buttonsContainer}>
+            <Animated.View style={buttonStyle}>
+              <NeonButton title="Quick Match" onPress={() => navigation.navigate('Match')} />
+            </Animated.View>
+            <Animated.View style={buttonStyle}>
+              <NeonButton title="Instructions" onPress={() => navigation.navigate('Instructions')} />
+            </Animated.View>
+            <Animated.View style={buttonStyle}>
+              <NeonButton title="Settings" onPress={() => navigation.navigate('Settings')} />
+            </Animated.View>
+            <Animated.View style={buttonStyle}>
+              <NeonButton
+                title="Logout"
+                onPress={async () => {
+                  await logout();
+                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                }}
+              />
+            </Animated.View>
+          </View>
         </View>
       </ImageBackground>
     </ScreenWrapper>

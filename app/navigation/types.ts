@@ -1,6 +1,6 @@
 export type RootStackParamList = {
   Login: undefined;
-  Register: undefined;
+  Signup: undefined;
   Home: undefined;
   Match: { matchId?: string } | undefined;
   Settings: undefined;
