@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { View, Text, StyleSheet, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NeonButton } from '../components/NeonButton';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { theme } from '../theme/colors';
@@ -15,107 +14,64 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
-
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-const Particle = ({ x, y, size }: { x: number; y: number; size: number }) => {
-  const anim = useSharedValue(0);
-
-  useEffect(() => {
-    anim.value = withRepeat(
-      withTiming(1, { duration: 4000 + Math.random() * 3000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true
-    );
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    position: 'absolute',
-    top: y + anim.value * 20,
-    left: x,
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    backgroundColor: interpolateColor(anim.value, [0, 1], ['#00ffff88', '#ffdd0088']),
-    opacity: 0.7 + 0.3 * anim.value,
-  }));
-
-  return <Animated.View style={style} />;
-};
-
 export default function HomeScreen({ navigation }: Props) {
-  const { logout } = useAuth();
-
   const glow = useSharedValue(0);
 
   useEffect(() => {
     glow.value = withRepeat(
-      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+      withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
       -1,
       true
     );
-  }, []);
+  }, [glow]);
 
   const titleStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(glow.value, [0, 1], ['#00ffff', '#ffdd00']);
-    const shadowColor = interpolateColor(glow.value, [0, 1], ['#00ffff88', '#ffdd0088']);
-    return { color, textShadowColor: shadowColor, textShadowRadius: 12, textShadowOffset: { width: 0, height: 0 } };
+    const color = interpolateColor(glow.value, [0, 1], ['#86f0ff', '#f9d976']);
+    return {
+      color,
+      textShadowColor: 'rgba(255,255,255,0.08)',
+      textShadowRadius: 6,
+      textShadowOffset: { width: 0, height: 1 },
+    };
   });
 
-  const buttonStyle = useAnimatedStyle(() => {
-    const shadowColor = interpolateColor(glow.value, [0, 1], ['#00ffff88', '#ffdd0088']);
-    return { shadowColor, shadowOpacity: 0.7, shadowRadius: 20, borderRadius: 14, shadowOffset: { width: 0, height: 0 } };
-  });
-
-  const numParticles = 15;
-  const particlesArray = Array.from({ length: numParticles }).map((_, i) => {
-    const x = Math.random() * width;
-    const y = Math.random() * height * 0.5;
-    const size = 4 + Math.random() * 6;
-    return <Particle key={i} x={x} y={y} size={size} />;
+  const panelStyle = useAnimatedStyle(() => {
+    const borderColor = interpolateColor(glow.value, [0, 1], ['rgba(255,255,255,0.12)', 'rgba(129, 238, 255, 0.18)']);
+    return {
+      borderColor,
+      shadowColor: borderColor,
+      shadowOpacity: 0.18,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+    };
   });
 
   return (
     <ScreenWrapper scrollable={false}>
-      <ImageBackground
-        source={require('../../assets/lobby_background.png')}
-        style={styles.background}
-        resizeMode="cover"
-        imageStyle={{ opacity: 0.4 }}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.background}>
+        <View style={styles.orb} />
+        <View style={[styles.orb, styles.orbSecondary]} />
 
-          {particlesArray}
-
-          <Animated.View style={styles.titleContainer}>
+        <Animated.View style={[styles.panel, panelStyle]}>
+          <View style={styles.accentLine} />
+          <View style={styles.titleContainer}>
             <Animated.Text style={[styles.title, titleStyle]}>Gemlocks</Animated.Text>
-            <Text style={styles.subtitle}>Think fast, crack codes, unlock gems!</Text>
-          </Animated.View>
-
+            <Text style={styles.subtitle}>Prototipo #1</Text>
+          </View>
 
           <View style={styles.buttonsContainer}>
-            <Animated.View style={buttonStyle}>
-              <NeonButton title="Quick Match" onPress={() => navigation.navigate('Match')} />
-            </Animated.View>
-            <Animated.View style={buttonStyle}>
-              <NeonButton title="Instructions" onPress={() => navigation.navigate('Instructions')} />
-            </Animated.View>
-            <Animated.View style={buttonStyle}>
-              <NeonButton title="Settings" onPress={() => navigation.navigate('Settings')} />
-            </Animated.View>
-            <Animated.View style={buttonStyle}>
-              <NeonButton
-                title="Logout"
-                onPress={async () => {
-                  await logout();
-                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-                }}
-              />
-            </Animated.View>
+            <NeonButton title="Partida demo" onPress={() => navigation.navigate('Match')} />
+            <NeonButton
+              title="Configuración"
+              onPress={() => navigation.navigate('Settings')}
+              color={theme.colors.secondary}
+              variant="secondary"
+            />
           </View>
-        </View>
-      </ImageBackground>
+        </Animated.View>
+      </View>
     </ScreenWrapper>
   );
 }
@@ -123,31 +79,70 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width, height,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    backgroundColor: '#060b14',
+    paddingHorizontal: 24,
+  },
+  orb: {
+    position: 'absolute',
+    top: '11%',
+    left: '10%',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(96, 219, 255, 0.1)',
+  },
+  orbSecondary: {
+    top: '70%',
+    left: '60%',
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(249, 217, 118, 0.08)',
+  },
+  panel: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: 'rgba(8, 14, 28, 0.95)',
+    borderRadius: 26,
+    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(134, 240, 255, 0.8)',
+    marginBottom: 18,
+    alignSelf: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 24,
     zIndex: 2,
   },
   title: {
     fontFamily: 'Orbitron_700Bold',
-    fontSize: 48,
+    fontSize: 36,
     textAlign: 'center',
+    letterSpacing: 1.2,
   },
   subtitle: {
     fontFamily: 'Orbitron_400Regular',
-    fontSize: 18,
-    color: theme.colors.text,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.68)',
     marginTop: 8,
     textAlign: 'center',
+    fontStyle: 'italic',
   },
   buttonsContainer: {
-    width: '80%',
-    gap: 20,
+    width: '100%',
+    gap: 10,
     zIndex: 2,
   },
 });
