@@ -18,6 +18,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const glow = useSharedValue(0);
+  const panelOpacity = useSharedValue(0);
+  const panelTranslateY = useSharedValue(-20);
 
   useEffect(() => {
     glow.value = withRepeat(
@@ -25,7 +27,10 @@ export default function HomeScreen({ navigation }: Props) {
       -1,
       true
     );
-  }, [glow]);
+
+    panelOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    panelTranslateY.value = withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) });
+  }, [glow, panelOpacity, panelTranslateY]);
 
   const titleStyle = useAnimatedStyle(() => {
     const color = interpolateColor(glow.value, [0, 1], ['#86f0ff', '#f9d976']);
@@ -45,6 +50,8 @@ export default function HomeScreen({ navigation }: Props) {
       shadowOpacity: 0.18,
       shadowRadius: 16,
       shadowOffset: { width: 0, height: 8 },
+      opacity: panelOpacity.value,
+      transform: [{ translateY: panelTranslateY.value }],
     };
   });
 
