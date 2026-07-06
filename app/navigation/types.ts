@@ -5,5 +5,6 @@ export type RootStackParamList = {
   Match: { matchId?: string } | undefined;
   Settings: undefined;
   DemoSettings: undefined;
+  DemoMatch: undefined;
   Instructions: undefined;
 };

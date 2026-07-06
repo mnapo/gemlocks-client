@@ -4,6 +4,7 @@ import HomeScreen from "../screens/HomeScreen";
 import MatchScreen from "../screens/MatchScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import DemoSettingsScreen from "../screens/DemoSettingsScreen";
+import DemoMatchScreen from "../screens/DemoMatchScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
 import { RootStackParamList } from './types';
 
@@ -19,6 +20,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Match" component={MatchScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="DemoSettings" component={DemoSettingsScreen} />
+      <Stack.Screen name="DemoMatch" component={DemoMatchScreen} />
       <Stack.Screen name="Instructions" component={InstructionsScreen} />
     </Stack.Navigator>
   );
