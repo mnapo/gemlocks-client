@@ -72,7 +72,7 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.buttonsContainer}>
-            <NeonButton title="Partida demo" onPress={() => navigation.navigate('Match')} />
+            <NeonButton title="Partida demo" onPress={() => navigation.navigate('DemoMatch')} />
             <NeonButton
               title="Configuración"
               onPress={() => navigation.navigate('DemoSettings')}

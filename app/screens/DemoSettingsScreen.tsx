@@ -13,7 +13,7 @@ import { useSettings } from '../context/SettingsContext';
 import type { RootStackParamList } from '../navigation/types';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'DemoSettings'>;
 
 const tokenSets = ['Números', 'Horóscopo', 'Emojis', 'Runas'];
 const tokenCounts = ['4', '5', '6'];
