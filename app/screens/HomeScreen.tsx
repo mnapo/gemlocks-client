@@ -18,6 +18,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const glow = useSharedValue(0);
+  const panelOpacity = useSharedValue(0);
+  const panelTranslateY = useSharedValue(-20);
 
   useEffect(() => {
     glow.value = withRepeat(
@@ -25,7 +27,10 @@ export default function HomeScreen({ navigation }: Props) {
       -1,
       true
     );
-  }, [glow]);
+
+    panelOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    panelTranslateY.value = withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) });
+  }, [glow, panelOpacity, panelTranslateY]);
 
   const titleStyle = useAnimatedStyle(() => {
     const color = interpolateColor(glow.value, [0, 1], ['#86f0ff', '#f9d976']);
@@ -45,16 +50,21 @@ export default function HomeScreen({ navigation }: Props) {
       shadowOpacity: 0.18,
       shadowRadius: 16,
       shadowOffset: { width: 0, height: 8 },
+      opacity: panelOpacity.value,
+      transform: [{ translateY: panelTranslateY.value }],
     };
   });
 
   return (
     <ScreenWrapper scrollable={false}>
-      <View style={styles.background}>
-        <View style={styles.orb} />
-        <View style={[styles.orb, styles.orbSecondary]} />
+      <View style={styles.screenContent}>
+        <View style={styles.background}>
+          <View style={styles.gradientOverlay} />
+          <View style={styles.gradientOverlaySecondary} />
+          <View style={styles.orb} />
+          <View style={[styles.orb, styles.orbSecondary]} />
 
-        <Animated.View style={[styles.panel, panelStyle]}>
+          <Animated.View style={[styles.panel, panelStyle]}>
           <View style={styles.accentLine} />
           <View style={styles.titleContainer}>
             <Animated.Text style={[styles.title, titleStyle]}>Gemlocks</Animated.Text>
@@ -62,27 +72,52 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.buttonsContainer}>
-            <NeonButton title="Partida demo" onPress={() => navigation.navigate('Match')} />
+            <NeonButton title="Partida demo" onPress={() => navigation.navigate('DemoMatch')} />
             <NeonButton
               title="Configuración"
-              onPress={() => navigation.navigate('Settings')}
+              onPress={() => navigation.navigate('DemoSettings')}
               color={theme.colors.secondary}
               variant="secondary"
             />
           </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
       </View>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContent: {
+    flex: 1,
+    width: '100%',
+  },
   background: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#060b14',
+    backgroundColor: '#04070f',
     paddingHorizontal: 24,
+    overflow: 'hidden',
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#050913',
+    opacity: 1,
+  },
+  gradientOverlaySecondary: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0b1830',
+    opacity: 0.8,
+    transform: [{ skewX: '-18deg' }],
   },
   orb: {
     position: 'absolute',
