@@ -50,12 +50,14 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <ScreenWrapper scrollable={false}>
-      <View style={styles.background}>
-        <View style={styles.gradientOverlay} />
-        <View style={styles.orb} />
-        <View style={[styles.orb, styles.orbSecondary]} />
+      <View style={styles.screenContent}>
+        <View style={styles.background}>
+          <View style={styles.gradientOverlay} />
+          <View style={styles.gradientOverlaySecondary} />
+          <View style={styles.orb} />
+          <View style={[styles.orb, styles.orbSecondary]} />
 
-        <Animated.View style={[styles.panel, panelStyle]}>
+          <Animated.View style={[styles.panel, panelStyle]}>
           <View style={styles.accentLine} />
           <View style={styles.titleContainer}>
             <Animated.Text style={[styles.title, titleStyle]}>Gemlocks</Animated.Text>
@@ -71,21 +73,25 @@ export default function HomeScreen({ navigation }: Props) {
               variant="secondary"
             />
           </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
       </View>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  screenContent: {
     flex: 1,
     width: '100%',
-    height: '100%',
+  },
+  background: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#04070f',
     paddingHorizontal: 24,
+    overflow: 'hidden',
   },
   gradientOverlay: {
     position: 'absolute',
@@ -93,8 +99,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#04070f',
-    backgroundImage: 'linear-gradient(135deg, #050913 0%, #0b1830 45%, #05070d 100%)',
+    backgroundColor: '#050913',
+    opacity: 1,
+  },
+  gradientOverlaySecondary: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0b1830',
+    opacity: 0.8,
+    transform: [{ skewX: '-18deg' }],
   },
   orb: {
     position: 'absolute',

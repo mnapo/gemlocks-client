@@ -21,10 +21,8 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   return (
     <SafeAreaView style={styles.safe}>
       <Container
-        contentContainerStyle={[
-          styles.container,
-          centered && styles.centered,
-        ]}
+        style={[styles.container, centered && styles.centeredContainer]}
+        contentContainerStyle={scrollable ? [styles.container, centered && styles.centered] : undefined}
       >
         {title && <Text style={styles.title}>{title}</Text>}
         {children}
@@ -36,8 +34,12 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
   container: {
-    flexGrow: 1,
+    flex: 1,
     padding: 20,
+  },
+  centeredContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   centered: {
     justifyContent: 'center',
