@@ -1,10 +1,21 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { AuthProvider } from "./context/AuthContext";
+import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import RootNavigator from "./navigation/RootNavigator";
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Orbitron_400Regular, Orbitron_700Bold } from '@expo-google-fonts/orbitron';
-import { theme } from './theme/colors';
+
+function AppContent() {
+  const { palette } = useSettings();
+
+  return (
+    <>
+      <StatusBar style={palette.background === '#f4f7fb' ? 'dark' : 'light'} backgroundColor={palette.background} />
+      <RootNavigator />
+    </>
+  );
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -18,10 +29,11 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <StatusBar style="light" backgroundColor={theme.colors.background} />
-        <RootNavigator />
-      </NavigationContainer>
+      <SettingsProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </SettingsProvider>
     </AuthProvider>
   );
 }
