@@ -54,10 +54,15 @@ export default function DemoMatchScreen() {
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [pendingPhaseIndex, setPendingPhaseIndex] = useState<number | null>(null);
-  const [showGuide, setShowGuide] = useState(true);
+  const [showGuide, setShowGuide] = useState(false);
+  const [phaseEntered, setPhaseEntered] = useState(false);
+  const [guideReady, setGuideReady] = useState(false);
 
   const introOpacity = useSharedValue(0);
   const introTranslateY = useSharedValue(-24);
+  const phaseOpacity = useSharedValue(0);
+  const phaseTranslateY = useSharedValue(-20);
+  const guideOpacity = useSharedValue(0);
   const outgoingOpacity = useSharedValue(1);
   const outgoingTranslateX = useSharedValue(0);
   const incomingOpacity = useSharedValue(0);
@@ -65,14 +70,35 @@ export default function DemoMatchScreen() {
 
   useEffect(() => {
     introOpacity.value = withTiming(1, {
-      duration: 900,
+      duration: 700,
       easing: Easing.out(Easing.cubic),
     });
     introTranslateY.value = withTiming(0, {
-      duration: 900,
+      duration: 700,
       easing: Easing.out(Easing.cubic),
     });
-  }, [introOpacity, introTranslateY]);
+
+    phaseOpacity.value = withTiming(1, {
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+    });
+    phaseTranslateY.value = withTiming(0, {
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    const timer = setTimeout(() => {
+      setGuideReady(true);
+      setShowGuide(true);
+      guideOpacity.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+      });
+      setPhaseEntered(true);
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [introOpacity, introTranslateY, phaseOpacity, phaseTranslateY, guideOpacity]);
 
   const activePhase = phaseOrder[phaseIndex];
   const pendingPhase = pendingPhaseIndex !== null ? phaseOrder[pendingPhaseIndex] : null;
@@ -91,8 +117,22 @@ export default function DemoMatchScreen() {
   };
 
   const handleAdvance = () => {
+    if (!phaseEntered) {
+      setPhaseEntered(true);
+      guideOpacity.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+      });
+      setShowGuide(true);
+      return;
+    }
+
     if (showGuide) {
       setShowGuide(false);
+      guideOpacity.value = withTiming(0, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+      });
       return;
     }
 
@@ -102,22 +142,24 @@ export default function DemoMatchScreen() {
   const handlePhaseChange = (nextIndex: number) => {
     setPendingPhaseIndex(nextIndex);
     setTransitioning(true);
-    setShowGuide(true);
+    setShowGuide(false);
+    setPhaseEntered(false);
+    setGuideReady(false);
 
     outgoingOpacity.value = withTiming(0, {
-      duration: 800,
+      duration: 220,
       easing: Easing.out(Easing.cubic),
     });
-    outgoingTranslateX.value = withTiming(-28, {
-      duration: 800,
+    outgoingTranslateX.value = withTiming(-16, {
+      duration: 220,
       easing: Easing.out(Easing.cubic),
     });
     incomingOpacity.value = withTiming(1, {
-      duration: 800,
+      duration: 220,
       easing: Easing.out(Easing.cubic),
     });
     incomingTranslateX.value = withTiming(0, {
-      duration: 800,
+      duration: 220,
       easing: Easing.out(Easing.cubic),
     });
 
@@ -129,7 +171,7 @@ export default function DemoMatchScreen() {
       outgoingTranslateX.value = 0;
       incomingOpacity.value = 0;
       incomingTranslateX.value = 24;
-    }, 800);
+    }, 220);
   };
 
   const introStyle = useAnimatedStyle(() => ({
@@ -147,10 +189,19 @@ export default function DemoMatchScreen() {
     transform: [{ translateX: incomingTranslateX.value }],
   }));
 
+  const phaseCardStyle = useAnimatedStyle(() => ({
+    opacity: phaseOpacity.value,
+    transform: [{ translateY: phaseTranslateY.value }],
+  }));
+
+  const guideStyle = useAnimatedStyle(() => ({
+    opacity: guideOpacity.value,
+  }));
+
   const content = useMemo(() => {
     return (
       <View style={styles.realPhaseContainer}>
-        <View style={[styles.phaseCard, { borderColor: palette.panelBorder, backgroundColor: palette.panel }]}> 
+        <Animated.View style={[styles.phaseCard, { borderColor: palette.panelBorder, backgroundColor: palette.panel }, phaseCardStyle]}> 
           <View style={styles.innerCard}>
             <View style={styles.phaseHeader}>
               <Text style={[styles.phaseLabel, { color: palette.primary }]}>Demo</Text>
@@ -171,10 +222,10 @@ export default function DemoMatchScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
 
-        {showGuide && (
-          <View style={styles.guideOverlay}>
+        {showGuide && guideReady && (
+          <Animated.View style={[styles.guideOverlay, guideStyle]}>
             <TouchableOpacity style={styles.guideCloseButton} onPress={() => setShowGuide(false)}>
               <Text style={[styles.exitText, { color: palette.text }]}>✕</Text>
             </TouchableOpacity>
@@ -191,7 +242,7 @@ export default function DemoMatchScreen() {
                 <Text style={[styles.placeholderText, { color: palette.textDim }]}>Se cierra con la X para pasar al contenido real.</Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         )}
       </View>
     );
@@ -245,8 +296,8 @@ const styles = StyleSheet.create({
   screenContent: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
   },
   finishButton: {
     position: 'absolute',
@@ -269,7 +320,8 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 500,
+    minHeight: 560,
     alignSelf: 'center',
   },
   realPhaseContainer: {
@@ -279,6 +331,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 24,
     padding: 20,
+    minHeight: 560,
+    justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   guideOverlay: {
@@ -289,14 +343,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     zIndex: 4,
   },
   guideCard: {
     width: '100%',
     borderWidth: 1,
     borderRadius: 24,
-    padding: 20,
+    padding: 22,
     shadowOpacity: 0.18,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -345,7 +399,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginTop: 8,
-    minHeight: 120,
+    minHeight: 180,
     justifyContent: 'center',
     gap: 8,
   },
