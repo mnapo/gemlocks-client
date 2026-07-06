@@ -23,12 +23,12 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
       style={[
         styles.button,
         {
-          borderColor: isSecondary ? 'rgba(255,255,255,0.16)' : 'rgba(0, 224, 255, 0.24)',
-          backgroundColor: isSecondary ? 'rgba(255,255,255,0.04)' : 'rgba(0, 224, 255, 0.1)',
+          borderColor: isSecondary ? 'rgba(255,255,255,0.2)' : 'rgba(0, 224, 255, 0.35)',
+          backgroundColor: isSecondary ? 'rgba(255,255,255,0.1)' : 'rgba(0, 224, 255, 0.16)',
           shadowColor: color,
-          shadowOpacity: isSecondary ? 0.08 : 0.14,
-          shadowRadius: 8,
-          elevation: 2,
+          shadowOpacity: isSecondary ? 0.12 : 0.2,
+          shadowRadius: 6,
+          elevation: 3,
         },
       ]}
       onPress={onPress}
@@ -41,7 +41,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: 12,
     paddingVertical: 13,
     paddingHorizontal: 20,
     alignItems: 'center',

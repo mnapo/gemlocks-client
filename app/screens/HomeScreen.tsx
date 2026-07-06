@@ -51,6 +51,7 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <ScreenWrapper scrollable={false}>
       <View style={styles.background}>
+        <View style={styles.gradientOverlay} />
         <View style={styles.orb} />
         <View style={[styles.orb, styles.orbSecondary]} />
 
@@ -79,10 +80,21 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#060b14',
+    backgroundColor: '#04070f',
     paddingHorizontal: 24,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#04070f',
+    backgroundImage: 'linear-gradient(135deg, #050913 0%, #0b1830 45%, #05070d 100%)',
   },
   orb: {
     position: 'absolute',
