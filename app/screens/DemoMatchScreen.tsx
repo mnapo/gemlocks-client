@@ -54,6 +54,7 @@ export default function DemoMatchScreen() {
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [pendingPhaseIndex, setPendingPhaseIndex] = useState<number | null>(null);
+  const [showGuide, setShowGuide] = useState(true);
 
   const introOpacity = useSharedValue(0);
   const introTranslateY = useSharedValue(-24);
@@ -82,8 +83,26 @@ export default function DemoMatchScreen() {
     }
 
     const nextIndex = phaseIndex + 1;
+    handlePhaseChange(nextIndex);
+  };
+
+  const handleExit = () => {
+    navigation.navigate('Home');
+  };
+
+  const handleAdvance = () => {
+    if (showGuide) {
+      setShowGuide(false);
+      return;
+    }
+
+    handleNext();
+  };
+
+  const handlePhaseChange = (nextIndex: number) => {
     setPendingPhaseIndex(nextIndex);
     setTransitioning(true);
+    setShowGuide(true);
 
     outgoingOpacity.value = withTiming(0, {
       duration: 800,
@@ -113,10 +132,6 @@ export default function DemoMatchScreen() {
     }, 800);
   };
 
-  const handleExit = () => {
-    navigation.navigate('Home');
-  };
-
   const introStyle = useAnimatedStyle(() => ({
     opacity: introOpacity.value,
     transform: [{ translateY: introTranslateY.value }],
@@ -134,37 +149,59 @@ export default function DemoMatchScreen() {
 
   const content = useMemo(() => {
     return (
-      <View style={styles.innerCard}>
-        <View style={styles.phaseHeader}>
-          <Text style={[styles.phaseLabel, { color: palette.primary }]}>Demo</Text>
-          <Text style={[styles.phaseTitle, { color: palette.text }]}>{activePhase.title}</Text>
+      <View style={styles.realPhaseContainer}>
+        <View style={[styles.phaseCard, { borderColor: palette.panelBorder, backgroundColor: palette.panel }]}> 
+          <View style={styles.innerCard}>
+            <View style={styles.phaseHeader}>
+              <Text style={[styles.phaseLabel, { color: palette.primary }]}>Demo</Text>
+              <Text style={[styles.phaseTitle, { color: palette.text }]}>{activePhase.title}</Text>
+            </View>
+
+            <View style={[styles.placeholderBox, { borderColor: palette.panelBorder }]}> 
+              <Text style={[styles.placeholderText, { color: palette.textDim }]}>Contenido real de la fase</Text>
+              <Text style={[styles.placeholderText, { color: palette.textDim }]}>Aquí luego irá la interacción propia de esta etapa.</Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.nextButton, { backgroundColor: palette.primary }]}
+              onPress={handleAdvance}
+            >
+              <Text style={[styles.nextButtonText, { color: palette.background }]}> 
+                {phaseIndex === phaseOrder.length - 1 ? 'Volver al inicio' : 'Siguiente fase'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <Text style={[styles.phaseSubtitle, { color: palette.textDim }]}>{activePhase.subtitle}</Text>
-        <Text style={[styles.phaseHint, { color: palette.text }]}>{activePhase.hint}</Text>
+        {showGuide && (
+          <View style={styles.guideOverlay}>
+            <TouchableOpacity style={styles.guideCloseButton} onPress={() => setShowGuide(false)}>
+              <Text style={[styles.exitText, { color: palette.text }]}>✕</Text>
+            </TouchableOpacity>
 
-        <View style={[styles.placeholderBox, { borderColor: palette.panelBorder }]}> 
-          <Text style={[styles.placeholderText, { color: palette.textDim }]}>Contenido de fase placeholder</Text>
-          <Text style={[styles.placeholderText, { color: palette.textDim }]}>Aquí luego irá el contenido real de esta etapa.</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.nextButton, { backgroundColor: palette.primary }]}
-          onPress={handleNext}
-        >
-          <Text style={[styles.nextButtonText, { color: palette.background }]}>
-            {phaseIndex === phaseOrder.length - 1 ? 'Volver al inicio' : 'Siguiente fase'}
-          </Text>
-        </TouchableOpacity>
+            <View style={[styles.guideCard, { borderColor: palette.panelBorder, backgroundColor: palette.panel }]}> 
+              <View style={styles.phaseHeader}>
+                <Text style={[styles.phaseLabel, { color: palette.primary }]}>Guía</Text>
+                <Text style={[styles.phaseTitle, { color: palette.text }]}>{activePhase.title}</Text>
+              </View>
+              <Text style={[styles.phaseSubtitle, { color: palette.textDim }]}>{activePhase.subtitle}</Text>
+              <Text style={[styles.phaseHint, { color: palette.text }]}>{activePhase.hint}</Text>
+              <View style={[styles.placeholderBox, { borderColor: palette.panelBorder }]}> 
+                <Text style={[styles.placeholderText, { color: palette.textDim }]}>Este cartel explica la fase actual.</Text>
+                <Text style={[styles.placeholderText, { color: palette.textDim }]}>Se cierra con la X para pasar al contenido real.</Text>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
     );
-  }, [activePhase, handleNext, palette, phaseIndex]);
+  }, [activePhase, handleAdvance, palette, phaseIndex, showGuide]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: palette.background }]}> 
       <View style={styles.screenContent}>
-        <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
-          <Text style={[styles.exitText, { color: palette.text }]}>✕</Text>
+        <TouchableOpacity style={styles.finishButton} onPress={handleExit}>
+          <Text style={[styles.finishButtonText, { color: palette.background }]}>Finalizar partida</Text>
         </TouchableOpacity>
 
         <Animated.View style={[styles.container, introStyle]}>
@@ -211,17 +248,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
   },
-  exitButton: {
+  finishButton: {
     position: 'absolute',
     top: 18,
     right: 18,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
     zIndex: 3,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#ffffff',
+  },
+  finishButtonText: {
+    fontSize: 12,
+    fontFamily: 'Orbitron_700Bold',
+    textTransform: 'uppercase',
   },
   exitText: {
     fontSize: 18,
@@ -232,11 +272,47 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     alignSelf: 'center',
   },
+  realPhaseContainer: {
+    position: 'relative',
+  },
   phaseCard: {
     borderWidth: 1,
     borderRadius: 24,
     padding: 20,
     backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  guideOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    zIndex: 4,
+  },
+  guideCard: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 20,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  guideCloseButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   innerCard: {
     gap: 12,
