@@ -68,34 +68,46 @@ export default function DemoMatchScreen() {
   const incomingOpacity = useSharedValue(0);
   const incomingTranslateX = useSharedValue(24);
 
+  const revealGuide = () => {
+    setGuideReady(true);
+    setShowGuide(true);
+    setPhaseEntered(true);
+    guideOpacity.value = withTiming(1, {
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+    });
+  };
+
+  const hideGuide = () => {
+    setShowGuide(false);
+    guideOpacity.value = withTiming(0, {
+      duration: 280,
+      easing: Easing.out(Easing.cubic),
+    });
+  };
+
   useEffect(() => {
     introOpacity.value = withTiming(1, {
-      duration: 700,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
     });
     introTranslateY.value = withTiming(0, {
-      duration: 700,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
     });
 
     phaseOpacity.value = withTiming(1, {
-      duration: 700,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
     });
     phaseTranslateY.value = withTiming(0, {
-      duration: 700,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
     });
 
     const timer = setTimeout(() => {
-      setGuideReady(true);
-      setShowGuide(true);
-      guideOpacity.value = withTiming(1, {
-        duration: 250,
-        easing: Easing.out(Easing.cubic),
-      });
-      setPhaseEntered(true);
-    }, 700);
+      revealGuide();
+    }, 900);
 
     return () => clearTimeout(timer);
   }, [introOpacity, introTranslateY, phaseOpacity, phaseTranslateY, guideOpacity]);
@@ -117,22 +129,17 @@ export default function DemoMatchScreen() {
   };
 
   const handleAdvance = () => {
+    if (transitioning) {
+      return;
+    }
+
     if (!phaseEntered) {
-      setPhaseEntered(true);
-      guideOpacity.value = withTiming(1, {
-        duration: 250,
-        easing: Easing.out(Easing.cubic),
-      });
-      setShowGuide(true);
+      revealGuide();
       return;
     }
 
     if (showGuide) {
-      setShowGuide(false);
-      guideOpacity.value = withTiming(0, {
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-      });
+      hideGuide();
       return;
     }
 
@@ -147,19 +154,19 @@ export default function DemoMatchScreen() {
     setGuideReady(false);
 
     outgoingOpacity.value = withTiming(0, {
-      duration: 220,
+      duration: 320,
       easing: Easing.out(Easing.cubic),
     });
-    outgoingTranslateX.value = withTiming(-16, {
-      duration: 220,
+    outgoingTranslateX.value = withTiming(-32, {
+      duration: 320,
       easing: Easing.out(Easing.cubic),
     });
     incomingOpacity.value = withTiming(1, {
-      duration: 220,
+      duration: 320,
       easing: Easing.out(Easing.cubic),
     });
     incomingTranslateX.value = withTiming(0, {
-      duration: 220,
+      duration: 320,
       easing: Easing.out(Easing.cubic),
     });
 
@@ -171,7 +178,18 @@ export default function DemoMatchScreen() {
       outgoingTranslateX.value = 0;
       incomingOpacity.value = 0;
       incomingTranslateX.value = 24;
-    }, 220);
+      phaseOpacity.value = withTiming(1, {
+        duration: 420,
+        easing: Easing.out(Easing.cubic),
+      });
+      phaseTranslateY.value = withTiming(0, {
+        duration: 420,
+        easing: Easing.out(Easing.cubic),
+      });
+      setTimeout(() => {
+        revealGuide();
+      }, 120);
+    }, 320);
   };
 
   const introStyle = useAnimatedStyle(() => ({
@@ -214,8 +232,9 @@ export default function DemoMatchScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.nextButton, { backgroundColor: palette.primary }]}
+              style={[styles.nextButton, { backgroundColor: palette.primary }, (showGuide && guideReady) && styles.nextButtonDisabled]}
               onPress={handleAdvance}
+              disabled={showGuide && guideReady}
             >
               <Text style={[styles.nextButtonText, { color: palette.background }]}> 
                 {phaseIndex === phaseOrder.length - 1 ? 'Volver al inicio' : 'Siguiente fase'}
@@ -226,11 +245,11 @@ export default function DemoMatchScreen() {
 
         {showGuide && guideReady && (
           <Animated.View style={[styles.guideOverlay, guideStyle]}>
-            <TouchableOpacity style={styles.guideCloseButton} onPress={() => setShowGuide(false)}>
-              <Text style={[styles.exitText, { color: palette.text }]}>✕</Text>
-            </TouchableOpacity>
-
             <View style={[styles.guideCard, { borderColor: palette.panelBorder, backgroundColor: palette.panel }]}> 
+              <TouchableOpacity style={styles.guideCloseButton} onPress={() => setShowGuide(false)}>
+                <Text style={[styles.exitText, { color: palette.text }]}>✕</Text>
+              </TouchableOpacity>
+
               <View style={styles.phaseHeader}>
                 <Text style={[styles.phaseLabel, { color: palette.primary }]}>Guía</Text>
                 <Text style={[styles.phaseTitle, { color: palette.text }]}>{activePhase.title}</Text>
@@ -257,8 +276,8 @@ export default function DemoMatchScreen() {
 
         <Animated.View style={[styles.container, introStyle]}>
           {transitioning && pendingPhase ? (
-            <>
-              <Animated.View style={[styles.phaseCard, outgoingStyle]}>
+            <View style={styles.transitionStage}>
+              <Animated.View style={[styles.phaseCard, styles.transitionLayer, outgoingStyle]}>
                 <View style={styles.innerCard}>
                   <View style={styles.phaseHeader}>
                     <Text style={[styles.phaseLabel, { color: palette.primary }]}>Demo</Text>
@@ -269,7 +288,7 @@ export default function DemoMatchScreen() {
                 </View>
               </Animated.View>
 
-              <Animated.View style={[styles.phaseCard, incomingStyle]}>
+              <Animated.View style={[styles.phaseCard, styles.transitionLayer, styles.incomingLayer, incomingStyle]}>
                 <View style={styles.innerCard}>
                   <View style={styles.phaseHeader}>
                     <Text style={[styles.phaseLabel, { color: palette.primary }]}>Demo</Text>
@@ -279,7 +298,7 @@ export default function DemoMatchScreen() {
                   <Text style={[styles.phaseHint, { color: palette.text }]}>{pendingPhase.hint}</Text>
                 </View>
               </Animated.View>
-            </>
+            </View>
           ) : (
             content
           )}
@@ -328,12 +347,28 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   phaseCard: {
+    width: '86%',
+    alignSelf: 'center',
     borderWidth: 1,
     borderRadius: 24,
     padding: 20,
     minHeight: 560,
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  transitionStage: {
+    position: 'relative',
+    minHeight: 560,
+    overflow: 'hidden',
+  },
+  transitionLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  incomingLayer: {
+    zIndex: 2,
   },
   guideOverlay: {
     position: 'absolute',
@@ -347,10 +382,12 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   guideCard: {
-    width: '100%',
+    position: 'relative',
+    width: '78%',
     borderWidth: 1,
     borderRadius: 24,
     padding: 22,
+    paddingTop: 28,
     shadowOpacity: 0.18,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -358,15 +395,15 @@ const styles = StyleSheet.create({
   },
   guideCloseButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     width: 34,
     height: 34,
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 5,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   innerCard: {
     gap: 12,
@@ -416,5 +453,8 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontFamily: 'Orbitron_700Bold',
     fontSize: 14,
+  },
+  nextButtonDisabled: {
+    opacity: 0.55,
   },
 });
