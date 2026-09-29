@@ -57,7 +57,7 @@ export async function createUser(email: string, password: string, name = "") {
     .insert({ email: email.trim().toLowerCase(), password_hash: passwordHash, name: name.trim() })
     .select("id,email,name").single();
   if (error) throw error;
-  return data;
+  return { sub: data.id, email: data.email, name: data.name };
 }
 
 export function payloadToUser(payload: JWTPayload): SessionUser {
