@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken, SESSION_COOKIE, validateUserCredentials } from "@/lib/auth";
-
-export function getSessionMaxAge() { return 60 * 60 * 24 * 30; }
+import { createSessionToken, getSessionMaxAge, SESSION_COOKIE, validateUserCredentials } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   let body: { email?: string; password?: string };
