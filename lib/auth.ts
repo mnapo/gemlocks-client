@@ -7,6 +7,8 @@ const ISSUER = "gemlocks";
 const AUDIENCE = "gemlocks-client";
 const SESSION_DURATION = "30d";
 
+export function getSessionMaxAge() { return 60 * 60 * 24 * 30; }
+
 export const SESSION_COOKIE = COOKIE_NAME;
 export interface SessionUser { sub: string; email: string; name: string; }
 
