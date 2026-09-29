@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken, getSessionMaxAge, SESSION_COOKIE, validateUserCredentials } from "@/lib/auth";
+import { createSessionToken, SESSION_COOKIE, validateUserCredentials } from "@/lib/auth";
 
 export function getSessionMaxAge() { return 60 * 60 * 24 * 30; }
 
