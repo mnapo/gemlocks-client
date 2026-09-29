@@ -1,33 +1,28 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import LogoutButton from "@/components/logout-button";
 
-export default function Home() {
+export default async function Home() {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const user = token ? await verifySessionToken(token) : null;
+
+  if (!user) redirect("/login");
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] px-6 text-[#f5f5f5]">
-      <div className="w-full max-w-lg text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-white/35">
-          code deduction
-        </p>
-        <h1 className="mt-5 text-6xl font-medium tracking-[-0.04em] sm:text-7xl">
-          gemlocks
-        </h1>
-        <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-white/40">
-          Descifrá el código. Cerrá el lock.
-        </p>
-
-        <div className="mx-auto mt-10 flex max-w-xs flex-col gap-2">
-          <Link
-            href="/login"
-            className="bg-[#f5f5f5] px-5 py-3 text-sm font-medium text-[#0b0b0b] transition hover:bg-white"
-          >
-            Iniciar sesión
-          </Link>
-          <Link
-            href="/signup"
-            className="border border-white/10 px-5 py-3 text-sm text-white/70 transition hover:border-white/25 hover:text-white"
-          >
-            Crear cuenta
-          </Link>
-        </div>
+    <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
+      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
+        <header className="flex items-center justify-between border-b border-white/10 py-5">
+          <span className="text-sm font-medium tracking-tight">gemlocks</span>
+          <LogoutButton />
+        </header>
+        <section className="flex flex-1 flex-col items-center justify-center text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/35">bienvenido</p>
+          <h1 className="mt-4 text-4xl font-medium tracking-tight">{user.name || user.email}</h1>
+          <p className="mt-3 text-sm text-white/40">¿Listo para jugar?</p>
+          <Link href="/game" className="mt-8 bg-[#f5f5f5] px-10 py-3 text-sm font-medium text-[#0b0b0b] transition hover:bg-white">Jugar</Link>
+        </section>
       </div>
     </main>
   );
