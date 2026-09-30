@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   if (firstWinner && finalTurnUsed) return NextResponse.json({ error: "La partida ya terminó" }, { status: 409 });
 
-  const guess = actor === "machine" ? chooseMachineGuess(humanGuesses, difficulty) : String(body?.guess ?? "");
+  const guess = actor === "machine" ? chooseMachineGuess(machineGuesses, difficulty) : String(body?.guess ?? "");
   if (!isValidCode(guess)) return NextResponse.json({ error: "El código debe tener 4 glifos únicos" }, { status: 400 });
 
   const attack = scoreGuess(actor === "human" ? machineSecret : humanSecret, guess);
