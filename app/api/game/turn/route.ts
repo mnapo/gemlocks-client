@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
   const difficulty = Number(payload.difficulty) as DifficultyLevel;
   const humanGuesses = Array.isArray(payload.humanGuesses) ? payload.humanGuesses as GuessResult[] : [];
   const machineGuesses = Array.isArray(payload.machineGuesses) ? payload.machineGuesses as GuessResult[] : [];
-  const secretCode = String(payload.secret);
+  const sharedSecret = String(payload.sharedSecret);
 
-  const humanResult = scoreGuess(secretCode, guess);
+  const humanResult = scoreGuess(sharedSecret, guess);
   const updatedHuman = [...humanGuesses, humanResult];
 
   if (humanResult.perfect === 4) {
@@ -40,13 +40,12 @@ export async function POST(req: NextRequest) {
   }
 
   const machineGuess = chooseMachineGuess(humanGuesses, difficulty);
-  const machineResult = scoreGuess(secretCode, machineGuess);
+  const machineResult = scoreGuess(sharedSecret, machineGuess);
   const updatedMachine = [...machineGuesses, machineResult];
-
   const status = machineResult.perfect === 4 ? "lost" : "playing";
 
   const nextToken = await new SignJWT({
-    secret: secretCode,
+    sharedSecret,
     difficulty,
     starter: payload.starter,
     humanGuesses: updatedHuman,
@@ -61,6 +60,7 @@ export async function POST(req: NextRequest) {
     status,
     human: result(humanResult),
     machine: result(machineResult),
+    starter: payload.starter,
   });
 
   res.cookies.set(GAME_COOKIE, nextToken, {
