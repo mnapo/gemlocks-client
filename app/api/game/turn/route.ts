@@ -28,6 +28,13 @@ export async function POST(req: NextRequest) {
   const humanGuesses = Array.isArray(payload.humanGuesses) ? payload.humanGuesses as GuessResult[] : [];
   const machineGuesses = Array.isArray(payload.machineGuesses) ? payload.machineGuesses as GuessResult[] : [];
   const sharedSecret = String(payload.sharedSecret);
+  const starter = payload.starter === "machine" ? "machine" : "human";
+  const firstWinner = payload.firstWinner === "human" || payload.firstWinner === "machine" ? payload.firstWinner : null;
+  const finalTurnUsed = payload.finalTurnUsed === true;
+
+  if (firstWinner && finalTurnUsed) {
+    return NextResponse.json({ error: "La partida ya terminó" }, { status: 409 });
+  }
 
   const guess = actor === "machine"
     ? chooseMachineGuess(humanGuesses, difficulty)
@@ -38,36 +45,70 @@ export async function POST(req: NextRequest) {
   }
 
   const attack = scoreGuess(sharedSecret, guess);
-
   const nextHuman = actor === "human" ? [...humanGuesses, attack] : humanGuesses;
   const nextMachine = actor === "machine" ? [...machineGuesses, attack] : machineGuesses;
   const won = attack.perfect === 4;
 
-  if (won) {
-    return NextResponse.json({ status: actor === "human" ? "won" : "lost", actor, result: result(attack) });
+  if (won && !firstWinner) {
+    const isStarter = actor === starter;
+    const opponent = actor === "human" ? "machine" : "human";
+
+    if (isStarter) {
+      const nextToken = await signGame({
+        sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
+        firstWinner: actor, finalTurnUsed: false,
+      });
+      const res = NextResponse.json({
+        status: "final-turn",
+        actor,
+        result: result(attack),
+        finalActor: opponent,
+      });
+      setGameCookie(res, nextToken);
+      return res;
+    }
+
+    return NextResponse.json({ status: "won", actor, result: result(attack) });
   }
 
-  const tokenPayload = {
-    sharedSecret,
-    difficulty,
-    starter: payload.starter,
-    humanGuesses: nextHuman,
-    machineGuesses: nextMachine,
-  };
+  if (firstWinner && actor !== firstWinner) {
+    const status = won
+      ? "draw"
+      : firstWinner === "human" ? "won" : "lost";
 
-  const nextToken = await new SignJWT(tokenPayload)
+    const nextToken = await signGame({
+      sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
+      firstWinner, finalTurnUsed: true,
+    });
+    const res = NextResponse.json({ status, actor, result: result(attack) });
+    setGameCookie(res, nextToken);
+    return res;
+  }
+
+  const nextToken = await signGame({
+    sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
+    firstWinner: null, finalTurnUsed: false,
+  });
+
+  const res = NextResponse.json({ status: "playing", actor, result: result(attack) });
+  setGameCookie(res, nextToken);
+  return res;
+}
+
+async function signGame(payload: Record<string, unknown>) {
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("2h")
     .sign(secret());
+}
 
-  const res = NextResponse.json({ status: "playing", actor, result: result(attack) });
-  res.cookies.set(GAME_COOKIE, nextToken, {
+function setGameCookie(res: NextResponse, token: string) {
+  res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 2,
   });
-  return res;
 }
