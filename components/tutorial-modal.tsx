@@ -23,7 +23,7 @@ function Visual({ type }: { type:string }) {
   <div className="tutorial-code-row"><span className="tutorial-result-label">Ataque →</span><div className="tutorial-result-code">{["3","8","1","6"].map((n,i)=><span key={n} className={"tutorial-result-glyph "+(i===1?"tutorial-perfect":"")+(i===3?" tutorial-regular":"")}>{n}{i===1&&<b className="tutorial-float-perfect tutorial-float-attack">8</b>}{i===3&&<b className="tutorial-float-regular tutorial-float-attack">6</b>}</span>)}</div></div>
   <div className="tutorial-result-bottom"><div className="tutorial-result-item perfect-result"><span className="tutorial-result-value">8</span><span>→ +1 perfecto</span></div><div className="tutorial-result-item regular-result"><span className="tutorial-result-value">6</span><span>→ +1 regular</span></div></div>
 </div></div>;
-  if(type==="discard") return <div className="tutorial-visual"><div className="grid grid-cols-5 gap-1.5">{["0","1","2","3","4","5","6","7","8","9"].map(n=><span key={n} className={"tutorial-small-glyph "+(["2","5","8"].includes(n)?"tutorial-discard":"")}>{n}{["2","5","8"].includes(n)&&<X size={14}/>}</span>)}</div></div>;
+  if(type==="discard") return <div className="tutorial-visual"><div className="grid grid-cols-5 gap-1.5">{["0","1","2","3","4","5","6","7","8","9"].map(n=><span key={n} className={"tutorial-small-glyph "+(["2","5","8"].includes(n)?"tutorial-discard tutorial-discard-seq":"")}>{n}{["2","5","8"].includes(n)&&<X size={14}/>}</span>)}</div></div>;
   return <div className="tutorial-visual"><div className="flex gap-2">{["2","7","4","9"].map(n=><span key={n} className="tutorial-win-glyph">{n}</span>)}</div></div>;
 }
 
