@@ -54,12 +54,25 @@ export async function POST(req: NextRequest) {
         sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
         firstWinner: actor, finalTurnUsed: false,
       });
-      const res = NextResponse.json({ status: "final-turn", actor, result: result(attack), finalActor: opponent });
+      const res = NextResponse.json({
+        status: "final-turn",
+        actor,
+        result: result(attack),
+        finalActor: opponent,
+      });
       setGameCookie(res, nextToken);
       return res;
     }
 
-    return NextResponse.json({ status: "won", actor, result: result(attack) });
+    // Status is always from the human player's perspective.
+    const status = actor === "human" ? "won" : "lost";
+    const nextToken = await signGame({
+      sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
+      firstWinner: actor, finalTurnUsed: true,
+    });
+    const res = NextResponse.json({ status, actor, result: result(attack) });
+    setGameCookie(res, nextToken);
+    return res;
   }
 
   if (firstWinner && actor !== firstWinner) {
