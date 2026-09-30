@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { Bot, User } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 
 type Result = { guess: string; perfect: number; regular: number };
@@ -23,37 +24,11 @@ function GlyphSelector({ value, onChange }: { value: string; onChange: (value: s
     if (value.length >= 4 || value.includes(digit)) return;
     onChange(value + digit);
   }
-
   function randomize() {
     const digits = Array.from({ length: 10 }, (_, i) => String(i)).sort(() => Math.random() - 0.5);
     onChange(digits.slice(0, 4).join(""));
   }
-
-  return (
-    <div className="mt-5">
-      <div className="flex items-center gap-2">
-        <div className="flex gap-3">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">
-              {value[index] ?? <span className="text-white/15">·</span>}
-            </div>
-          ))}
-        </div>
-        <button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")}
-          className="ml-1 flex h-10 w-10 items-center justify-center border border-white/10 text-white/45 transition hover:border-white/25 hover:text-white">⌫</button>
-        <button type="button" onClick={randomize}
-          className="h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white">Aleatorio</button>
-      </div>
-      <div className="mt-5 grid grid-cols-5 gap-2">
-        {Array.from({ length: 10 }, (_, index) => {
-          const digit = String(index);
-          const used = value.includes(digit);
-          return <button key={digit} type="button" disabled={used || value.length >= 4} onClick={() => addDigit(digit)}
-            className="h-10 border border-white/10 bg-white/[0.02] font-mono text-sm transition hover:border-white/25 disabled:cursor-not-allowed disabled:opacity-20">{digit}</button>;
-        })}
-      </div>
-    </div>
-  );
+  return <div className="mt-5"><div className="flex items-center gap-2"><div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">{value[index] ?? <span className="text-white/15">·</span>}</div>)}</div><button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="ml-1 flex h-10 w-10 items-center justify-center border border-white/10 text-white/45 transition hover:border-white/25 hover:text-white">⌫</button><button type="button" onClick={randomize} className="h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white">Aleatorio</button></div><div className="mt-5 grid grid-cols-5 gap-2">{Array.from({ length: 10 }, (_, index) => { const digit = String(index); const used = value.includes(digit); return <button key={digit} type="button" disabled={used || value.length >= 4} onClick={() => addDigit(digit)} className="h-10 border border-white/10 bg-white/[0.02] font-mono text-sm transition hover:border-white/25 disabled:cursor-not-allowed disabled:opacity-20">{digit}</button>; })}</div></div>;
 }
 
 function ThinkingGlyphs({ value }: { value: string }) {
@@ -61,7 +36,30 @@ function ThinkingGlyphs({ value }: { value: string }) {
 }
 
 function Coin() {
-  return <div className="relative flex h-64 items-end justify-center"><div className="coin-shadow absolute bottom-8 h-5 w-28 rounded-[50%] bg-white/60 blur-sm" /><div className="coin-toss relative z-10 flex h-24 w-24 items-center justify-center rounded-full border-4 border-white/70 bg-[#171717] text-2xl font-medium shadow-[0_0_45px_rgba(255,255,255,0.08)]"><span>G</span></div></div>;
+  return <div className="relative flex h-64 items-end justify-center"><div className="coin-shadow absolute bottom-8 h-4 w-20 rounded-[50%] bg-yellow-500/70 blur-sm" /><div className="coin-toss relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-4 border-yellow-700 bg-yellow-400 text-lg font-medium text-yellow-950 shadow-[0_0_35px_rgba(234,179,8,0.15)]"><span>G</span></div></div>;
+}
+
+function History({ humanResults, machineResults }: { humanResults: Result[]; machineResults: Result[] }) {
+  const [tab, setTab] = useState<"human" | "machine">("human");
+  const results = tab === "human" ? humanResults : machineResults;
+
+  return <div className="mt-12">
+    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+      <div className="text-xs uppercase tracking-[0.25em] text-white/30">Historial</div>
+      <div className="flex items-center gap-1">
+        <button type="button" title="Mis ataques" aria-label="Mis ataques" onClick={() => setTab("human")} className={"flex h-8 w-8 items-center justify-center border transition " + (tab === "human" ? "border-white/30 bg-white/[0.07] text-white" : "border-transparent text-white/30 hover:text-white/70")}><User size={15} strokeWidth={1.8} /></button>
+        <button type="button" title="Ataques de la máquina" aria-label="Ataques de la máquina" onClick={() => setTab("machine")} className={"flex h-8 w-8 items-center justify-center border transition " + (tab === "machine" ? "border-white/30 bg-white/[0.07] text-white" : "border-transparent text-white/30 hover:text-white/70")}><Bot size={15} strokeWidth={1.8} /></button>
+      </div>
+    </div>
+    <div className="divide-y divide-white/10 border-b border-white/10">
+      {results.length === 0 && <div className="py-5 text-sm text-white/25">Todavía no hay ataques.</div>}
+      {[...results].reverse().map((result, index) => <div key={index} className="flex items-center justify-between py-3 text-sm"><span className="font-mono tracking-widest">{result.guess}</span><span className="text-white/45">{result.perfect} perfectos · {result.regular} regulares</span></div>)}
+    </div>
+  </div>;
+}
+
+function ResultPanel({ result, label, action, onAction }: { result: Result; label: string; action: string; onAction: () => void }) {
+  return <div className="flex flex-1 flex-col justify-center"><div className="border border-white/10 bg-white/[0.02] p-7 text-center"><p className="text-xs uppercase tracking-[0.25em] text-white/35">{label}</p><div className="mt-7 flex justify-center"><Glyphs value={result.guess} /></div><div className="mt-8 grid grid-cols-2 border-t border-white/10 pt-6"><div><div className="text-3xl font-medium">{result.perfect}</div><div className="mt-1 text-xs text-white/35">perfectos</div></div><div><div className="text-3xl font-medium">{result.regular}</div><div className="mt-1 text-xs text-white/35">regulares</div></div></div></div><button type="button" onClick={onAction} className="mt-6 bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">{action}</button></div>;
 }
 
 export default function GamePage() {
@@ -136,7 +134,7 @@ export default function GamePage() {
         setMachineResults((current) => [...current, result]); setLastResult(result);
         if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
         else setPhase(data.status === "lost" ? "lost" : "opponent-result");
-      } catch { if (active) setError("Error de conexión. Intentá de nuevo."); }
+      } catch { if (active) setError("Error de conexión. Intentá de novo."); }
     }, 1200);
     return () => { active = false; window.clearTimeout(timer); };
   }, [phase]);
@@ -146,44 +144,19 @@ export default function GamePage() {
   function continueAfterOpponentResult() { setLastResult(null); setPhase("player-turn"); }
   function beginFinalTurn() { setLastResult(null); setPhase(finalActor === "human" ? "player-turn" : "thinking"); }
 
-  if (phase === "setup") return (
-    <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
-      <header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">Volver</Link></header>
-      <section className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el mismo código secreto.</p>
-        <div className="mt-10 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-50">{loading ? "Iniciando..." : "Comenzar partida"}</button>
-      </section>
-    </div></main>
-  );
+  if (phase === "setup") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">Volver</Link></header><section className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el mismo código secreto.</p><div className="mt-10 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-50">{loading ? "Iniciando..." : "Comenzar partida"}</button></section></div></main>;
 
   const inMatch = !["coin-toss", "coin-result"].includes(phase);
-
-  return (
-    <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
-      <header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><span className="text-xs text-white/40">Nivel {difficulty}</span></header>
-      <section key={phase} className="phase-enter flex flex-1 flex-col py-10">
-        {!inMatch && phase === "coin-toss" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo</p><h1 className="mt-4 text-3xl font-medium">¿Quién empieza?</h1><Coin /></div>}
-        {!inMatch && phase === "coin-result" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo terminado</p><h1 className="mt-4 text-3xl font-medium">{starter === "human" ? "Empezás vos." : "Empieza la máquina."}</h1><p className="mt-4 text-sm text-white/40">{starter === "human" ? "Tenés el primer ataque." : "La máquina tiene el primer ataque."}</p><button type="button" onClick={beginMatch} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Comenzar</button></div>}
-
-        {inMatch && <><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-white/35">{starter === "human" ? "vos empezaste" : "la máquina empezó"}</p><h1 className="mt-3 text-3xl font-medium tracking-tight">{phaseTitle[phase as Exclude<Phase, "setup">]}</h1></div><div className="text-right text-xs text-white/30"><div>{humanResults.length} ataques tuyos</div><div>{machineResults.length} de la máquina</div></div></div>
-
-          {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? "Este es tu turno final. Si descubrís el código, empatás la partida." : "Elegí 4 glifos distintos para atacar."}</p><GlyphSelector value={guess} onChange={setGuess} /><button type="button" onClick={submitGuess as unknown as () => void} disabled={loading || guess.length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Atacando..." : "Atacar"}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History title="Historial" results={humanResults} /></>}
-
-          {phase === "player-result" && lastResult && <ResultPanel result={lastResult} label="Tu ataque" action="Continuar" onAction={continueAfterPlayerResult} />}
-          {phase === "thinking" && <div className="flex flex-1 flex-col items-center justify-center text-center"><ThinkingGlyphs value={machineReveal} /><div className="mt-7 flex gap-2"><span className="thinking-dot h-3 w-3 rounded-full bg-white/80" /><span className="thinking-dot h-3 w-3 rounded-full bg-white/80" /><span className="thinking-dot h-3 w-3 rounded-full bg-white/80" /></div><p className="mt-5 text-sm text-white/40">Analizando posibilidades...</p></div>}
-          {phase === "opponent-result" && lastResult && <ResultPanel result={lastResult} label="Ataque de la máquina" action="Tu turno" onAction={continueAfterOpponentResult} />}
-          {phase === "final-turn" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">último turno</div><h2 className="mt-5 text-3xl font-medium">{finalActor === "human" ? "Tenés una oportunidad más." : "La máquina tiene una oportunidad más."}</h2><p className="mt-4 max-w-md text-sm leading-6 text-white/40">{finalActor === "human" ? "Fuiste el primero en descubrir el código. Como empezaste primero, el adversario conserva su turno final para buscar el empate. Ahora es tu turno final." : "La máquina fue la primera en descubrir el código. Como empezó primero, vos conservás el turno final para buscar el empate."}</p><button type="button" onClick={beginFinalTurn} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{finalActor === "human" ? "Jugar mi turno final" : "Continuar"}</button></div>}
-          {(phase === "won" || phase === "lost" || phase === "draw") && <div className="phase-enter flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phaseTitle[phase]}</h2><p className="mt-3 text-sm text-white/40">{phase === "draw" ? "Ambos descubrieron el código. La partida termina en empate." : phase === "won" ? "Descubriste el código antes que la máquina." : "La máquina descubrió el código antes que vos."}</p><button type="button" onClick={() => { setPhase("setup"); setError(""); }} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button></div>}
-        </>}
-      </section>
-    </div></main>
-  );
-}
-
-function History({ title, results }: { title: string; results: Result[] }) {
-  return <div className="mt-12"><div className="text-xs uppercase tracking-[0.25em] text-white/30">{title}</div><div className="mt-3 divide-y divide-white/10 border-y border-white/10">{results.length === 0 && <div className="py-5 text-sm text-white/25">Todavía no hay ataques.</div>}{results.map((result, index) => <div key={index} className="flex items-center justify-between py-3 text-sm"><span className="font-mono tracking-widest">{result.guess}</span><span className="text-white/45">{result.perfect} perfectos · {result.regular} regulares</span></div>)}</div></div>;
-}
-
-function ResultPanel({ result, label, action, onAction }: { result: Result; label: string; action: string; onAction: () => void }) {
-  return <div className="flex flex-1 flex-col justify-center"><div className="border border-white/10 bg-white/[0.02] p-7 text-center"><p className="text-xs uppercase tracking-[0.25em] text-white/35">{label}</p><div className="mt-7 flex justify-center"><Glyphs value={result.guess} /></div><div className="mt-8 grid grid-cols-2 border-t border-white/10 pt-6"><div><div className="text-3xl font-medium">{result.perfect}</div><div className="mt-1 text-xs text-white/35">perfectos</div></div><div><div className="text-3xl font-medium">{result.regular}</div><div className="mt-1 text-xs text-white/35">regulares</div></div></div></div><button type="button" onClick={onAction} className="mt-6 bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">{action}</button></div>;
+  return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><span className="text-xs text-white/40">Nivel {difficulty}</span></header><section key={phase} className="phase-enter flex flex-1 flex-col py-10">
+    {!inMatch && phase === "coin-toss" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo</p><h1 className="mt-4 text-3xl font-medium">¿Quién empieza?</h1><Coin /></div>}
+    {!inMatch && phase === "coin-result" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo terminado</p><h1 className="mt-4 text-3xl font-medium">{starter === "human" ? "Empezás vos." : "Empieza la máquina."}</h1><p className="mt-4 text-sm text-white/40">{starter === "human" ? "Tenés el primer ataque." : "La máquina tiene el primer ataque."}</p><button type="button" onClick={beginMatch} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Comenzar</button></div>}
+    {inMatch && <><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-white/35">{starter === "human" ? "vos empezaste" : "la máquina empezó"}</p><h1 className="mt-3 text-3xl font-medium tracking-tight">{phaseTitle[phase as Exclude<Phase, "setup">]}</h1></div><div className="text-right text-xs text-white/30"><div>{humanResults.length} ataques tuyos</div><div>{machineResults.length} de la máquina</div></div></div>
+      {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? "Este es tu turno final. Si descubrís el código, empatás la partida." : "Elegí 4 glifos distintos para atacar."}</p><GlyphSelector value={guess} onChange={setGuess}/><button type="button" onClick={() => submitGuess({ preventDefault() {} } as FormEvent)} disabled={loading || guess.length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Atacando..." : "Atacar"}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History humanResults={humanResults} machineResults={machineResults}/></>}
+      {phase === "player-result" && lastResult && <ResultPanel result={lastResult} label="Tu ataque" action="Continuar" onAction={continueAfterPlayerResult}/>}
+      {phase === "thinking" && <div className="flex flex-1 flex-col items-center justify-center text-center"><ThinkingGlyphs value={machineReveal}/><div className="mt-7 flex gap-2"><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/></div><p className="mt-5 text-sm text-white/40">Analizando posibilidades...</p></div>}
+      {phase === "opponent-result" && lastResult && <ResultPanel result={lastResult} label="Ataque de la máquina" action="Tu turno" onAction={continueAfterOpponentResult}/>}
+      {phase === "final-turn" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">último turno</div><h2 className="mt-5 text-3xl font-medium">{finalActor === "human" ? "Tenés una oportunidad más." : "La máquina tiene una oportunidad más."}</h2><p className="mt-4 max-w-md text-sm leading-6 text-white/40">{finalActor === "human" ? "Fuiste el primero en descubrir el código. Como empezaste primero, el adversario conserva su turno final para buscar el empate. Ahora es tu turno final." : "La máquina fue la primera en descubrir el código. Como empezó primero, vos conservás el turno final para buscar el empate."}</p><button type="button" onClick={beginFinalTurn} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{finalActor === "human" ? "Jugar mi turno final" : "Continuar"}</button></div>}
+      {(phase === "won" || phase === "lost" || phase === "draw") && <div className="phase-enter flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phaseTitle[phase]}</h2><p className="mt-3 text-sm text-white/40">{phase === "draw" ? "Ambos descubrieron el código. La partida termina en empate." : phase === "won" ? "Descubriste el código antes que la máquina." : "La máquina descubrió el código antes que vos."}</p><button type="button" onClick={() => { setPhase("setup"); setError(""); }} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button></div>}
+    </>}
+  </section></div></main>;
 }
