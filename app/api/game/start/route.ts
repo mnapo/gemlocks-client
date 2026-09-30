@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateCodes } from "@/lib/game/engine";
+import { generateCodes, isValidCode } from "@/lib/game/engine";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import { SignJWT } from "jose";
 
@@ -14,17 +14,24 @@ function secret() {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const difficulty = Number(body?.difficulty) as DifficultyLevel;
+  const humanSecret = String(body?.humanSecret ?? "");
 
   if (!DIFFICULTIES.some((item) => item.level === difficulty)) {
     return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
   }
+  if (!isValidCode(humanSecret)) {
+    return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
+  }
 
   const codes = generateCodes();
-  const sharedSecret = codes[Math.floor(Math.random() * codes.length)];
+  let machineSecret = codes[Math.floor(Math.random() * codes.length)];
+  while (machineSecret === humanSecret) machineSecret = codes[Math.floor(Math.random() * codes.length)];
+
   const starter = Math.random() < 0.5 ? "human" : "machine";
 
   const token = await new SignJWT({
-    sharedSecret,
+    humanSecret,
+    machineSecret,
     difficulty,
     starter,
     humanGuesses: [],
@@ -35,7 +42,7 @@ export async function POST(req: NextRequest) {
     .setExpirationTime("2h")
     .sign(secret());
 
-  const res = NextResponse.json({ ok: true, starter });
+  const res = NextResponse.json({ ok: true, starter, humanSecret });
 
   res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true,
