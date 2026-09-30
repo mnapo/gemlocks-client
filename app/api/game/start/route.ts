@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateCodes, isValidCode } from "@/lib/game/engine";
+import { generateCodes } from "@/lib/game/engine";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import { SignJWT } from "jose";
 
@@ -14,14 +14,9 @@ function secret() {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const difficulty = Number(body?.difficulty) as DifficultyLevel;
-  const playerCode = String(body?.playerCode ?? "");
 
   if (!DIFFICULTIES.some((item) => item.level === difficulty)) {
     return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
-  }
-
-  if (!isValidCode(playerCode)) {
-    return NextResponse.json({ error: "Tu código debe tener 4 glifos únicos" }, { status: 400 });
   }
 
   const codes = generateCodes();
@@ -30,7 +25,6 @@ export async function POST(req: NextRequest) {
 
   const token = await new SignJWT({
     sharedSecret,
-    playerCode,
     difficulty,
     starter,
     humanGuesses: [],
@@ -42,6 +36,7 @@ export async function POST(req: NextRequest) {
     .sign(secret());
 
   const res = NextResponse.json({ ok: true, starter });
+
   res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -49,5 +44,6 @@ export async function POST(req: NextRequest) {
     path: "/",
     maxAge: 60 * 60 * 2,
   });
+
   return res;
 }
