@@ -4,7 +4,6 @@ import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import { SignJWT } from "jose";
 
 const GAME_COOKIE = "gemlocks_game";
-const GAME_DURATION = "2h";
 
 function secret() {
   const value = process.env.AUTH_JWT_SECRET;
@@ -15,30 +14,34 @@ function secret() {
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const difficulty = Number(body?.difficulty) as DifficultyLevel;
+  const playerCode = String(body?.playerCode ?? "");
 
   if (!DIFFICULTIES.some((item) => item.level === difficulty)) {
     return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
   }
 
-  const codes = generateCodes();
-  const secretCode = codes[Math.floor(Math.random() * codes.length)];
-  if (!isValidCode(secretCode)) {
-    return NextResponse.json({ error: "No se pudo iniciar la partida" }, { status: 500 });
+  if (!isValidCode(playerCode)) {
+    return NextResponse.json({ error: "Tu código debe tener 4 glifos únicos" }, { status: 400 });
   }
 
+  const codes = generateCodes();
+  const sharedSecret = codes[Math.floor(Math.random() * codes.length)];
+  const starter = Math.random() < 0.5 ? "human" : "machine";
+
   const token = await new SignJWT({
-    secret: secretCode,
+    sharedSecret,
+    playerCode,
     difficulty,
-    starter: Math.random() < 0.5 ? "human" : "machine",
+    starter,
     humanGuesses: [],
     machineGuesses: [],
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(GAME_DURATION)
+    .setExpirationTime("2h")
     .sign(secret());
 
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true, starter });
   res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
