@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 const slides = [
-  { title:"Descubrí el código", text:"Cada jugador tiene un código secreto de 4 glifos únicos. El objetivo es descubrir el código del adversario antes de que descubra el tuyo.", visual:"secret" },
+  { title:"Armá un código", text:"Cada jugador tiene un código secreto de 4 glifos únicos. El objetivo es descubrir el código del adversario antes de que descubra el tuyo.", visual:"secret" },
   { title:"Elegí la dificultad", text:"Antes de empezar elegís uno de los cinco niveles. La dificultad determina cómo piensa y elige sus ataques la máquina.", visual:"difficulty" },
   { title:"Se sortea el primer turno", text:"Una moneda decide quién comienza la partida.", visual:"coin" },
   { title:"Atacá", text:"En tu turno armá un código y atacá. Cada ataque se compara con el código secreto del adversario.", visual:"attack" },
   { title:"Resultados de ataque", text:"Los perfectos indican glifos correctos en la posición correcta. Los regulares indican glifos correctos en otra posición.", visual:"results" },
   { title:"Usá el descarte", text:"Si creés que un glifo no forma parte del código, activá Descartar y bloquealo para tener una ayuda visual durante la partida.", visual:"discard" },
-  { title:"Ganá la partida", text:"El primero que descubre el código del adversario gana. Si los cuatro glifos son perfectos, el ataque encontró todo el código.", visual:"win" },
+  { title:"Ganá la partida", text:"El primero que descubre el código del adversario gana. Si los cuatro glifos son perfectos, el atacante encontró el código del adversario.", visual:"win" },
 ] as const;
 
 function Visual({ type }: { type:string }) {
@@ -20,7 +20,7 @@ function Visual({ type }: { type:string }) {
   if(type==="attack") return <div className="tutorial-visual"><div className="flex items-center gap-5"><div className="flex gap-1.5">{["3","8","1","6"].map((n,i)=><span key={n} className="tutorial-small-glyph tutorial-pop" style={{animationDelay:i*90+"ms"}}>{n}</span>)}</div><span className="text-2xl">⚔️</span></div></div>;
   if(type==="results") return <div className="tutorial-visual"><div className="tutorial-results">
   <div className="tutorial-code-row"><span className="tutorial-result-label">Secreto →</span><div className="tutorial-result-code">{["6","8","4","2"].map((n,i)=><span key={n} className={"tutorial-result-glyph tutorial-secret-glyph-"+i}>{n}</span>)}</div></div>
-  <div className="tutorial-code-row"><span className="tutorial-result-label">Ataque →</span><div className="tutorial-result-code">{["3","1","8","6"].map((n,i)=><span key={n} className={"tutorial-result-glyph tutorial-attack-glyph-"+i}>{n}</span>)}</div></div>
+  <div className="tutorial-code-row"><span className="tutorial-result-label">Ataque →</span><div className="tutorial-result-code">{["3","8","1","6"].map((n,i)=><span key={n} className={"tutorial-result-glyph tutorial-attack-glyph-"+i}>{n}</span>)}</div></div>
   <div className="tutorial-result-bottom"><div className="tutorial-result-item perfect-result"><span className="tutorial-result-value">8</span><span>→ perfecto</span></div><div className="tutorial-result-item regular-result"><span className="tutorial-result-value">6</span><span>→ regular</span></div></div>
 </div></div>;
 if(type==="discard") return <div className="tutorial-visual"><div className="grid grid-cols-5 gap-1.5">{["0","1","2","3","4","5","6","7","8","9"].map(n=><span key={n} className={"tutorial-small-glyph "+(["2","5","8"].includes(n)?"tutorial-discard tutorial-discard-seq":"")}>{n}{["2","5","8"].includes(n)&&<X size={14}/>}</span>)}</div></div>;
