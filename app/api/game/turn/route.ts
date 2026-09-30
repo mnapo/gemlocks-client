@@ -32,17 +32,13 @@ export async function POST(req: NextRequest) {
   const firstWinner = payload.firstWinner === "human" || payload.firstWinner === "machine" ? payload.firstWinner : null;
   const finalTurnUsed = payload.finalTurnUsed === true;
 
-  if (firstWinner && finalTurnUsed) {
-    return NextResponse.json({ error: "La partida ya terminó" }, { status: 409 });
-  }
+  if (firstWinner && finalTurnUsed) return NextResponse.json({ error: "La partida ya terminó" }, { status: 409 });
 
   const guess = actor === "machine"
     ? chooseMachineGuess(humanGuesses, difficulty)
     : String(body?.guess ?? "");
 
-  if (!isValidCode(guess)) {
-    return NextResponse.json({ error: "El código debe tener 4 dígitos únicos" }, { status: 400 });
-  }
+  if (!isValidCode(guess)) return NextResponse.json({ error: "El código debe tener 4 dígitos únicos" }, { status: 400 });
 
   const attack = scoreGuess(sharedSecret, guess);
   const nextHuman = actor === "human" ? [...humanGuesses, attack] : humanGuesses;
@@ -58,12 +54,7 @@ export async function POST(req: NextRequest) {
         sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
         firstWinner: actor, finalTurnUsed: false,
       });
-      const res = NextResponse.json({
-        status: "final-turn",
-        actor,
-        result: result(attack),
-        finalActor: opponent,
-      });
+      const res = NextResponse.json({ status: "final-turn", actor, result: result(attack), finalActor: opponent });
       setGameCookie(res, nextToken);
       return res;
     }
@@ -72,10 +63,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (firstWinner && actor !== firstWinner) {
-    const status = won
-      ? "draw"
-      : firstWinner === "human" ? "won" : "lost";
-
+    const status = won ? "draw" : firstWinner === "human" ? "won" : "lost";
     const nextToken = await signGame({
       sharedSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine,
       firstWinner, finalTurnUsed: true,
@@ -90,17 +78,18 @@ export async function POST(req: NextRequest) {
     firstWinner: null, finalTurnUsed: false,
   });
 
-  const res = NextResponse.json({ status: "playing", actor, result: result(attack) });
+  const res = NextResponse.json({
+    status: "playing",
+    actor,
+    result: result(attack),
+    ...(actor === "machine" ? { machineGuess: guess } : {}),
+  });
   setGameCookie(res, nextToken);
   return res;
 }
 
 async function signGame(payload: Record<string, unknown>) {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("2h")
-    .sign(secret());
+  return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("2h").sign(secret());
 }
 
 function setGameCookie(res: NextResponse, token: string) {
