@@ -44,3 +44,13 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
 .glyph-fill { animation: glyph-fill .2s ease-out both; }
 .coin-toss { animation: coin-toss 2.15s cubic-bezier(.2,.75,.25,1) both; transform-style: preserve-3d; }
 .coin-shadow { animation: coin-shadow 2.15s ease-in-out both; }
+
+
+.tutorial-visual { height: 190px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.02); overflow: hidden; }
+.tutorial-glyph { display: flex; height: 48px; width: 48px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.04); font-family: monospace; font-size: 18px; }
+.tutorial-small-glyph { position: relative; display: flex; height: 34px; width: 34px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.12); font-family: monospace; font-size: 12px; }
+.tutorial-pop { animation: tutorial-pop .7s ease-out both; }
+.tutorial-discard { color: rgba(248,113,113,.65); border-color: rgba(248,113,113,.2); }
+.tutorial-discard svg { position: absolute; color: rgb(239,68,68); opacity: .4; }
+.tutorial-win { animation: tutorial-pop .7s ease-out both; font-size: 56px; color: rgb(52,211,153); }
+@keyframes tutorial-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
