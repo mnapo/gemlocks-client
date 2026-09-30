@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     .setExpirationTime("2h")
     .sign(secret());
 
-  const res = NextResponse.json({ ok: true, starter, humanSecret });
+  const res = NextResponse.json({ ok: true, starter, humanSecret, machineSecret });
 
   res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true,
