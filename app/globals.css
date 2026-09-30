@@ -5,28 +5,31 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-:root {
-  --background: #f7f7f5;
-  --foreground: #171717;
-}
-
-.dark {
-  --background: #101010;
-  --foreground: #f5f5f5;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  min-height: 100%;
-}
-
+:root { --background: #f7f7f5; --foreground: #171717; }
+.dark { --background: #101010; --foreground: #f5f5f5; }
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-roboto), Roboto, sans-serif;
 }
+
+@keyframes phase-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dot-wave {
+  0%, 60%, 100% { transform: translateY(0); opacity: .3; }
+  30% { transform: translateY(-7px); opacity: 1; }
+}
+@keyframes glyph-fill {
+  from { opacity: 0; transform: scale(.75); }
+  to { opacity: 1; transform: scale(1); }
+}
+.phase-enter { animation: phase-in .32s ease-out both; }
+.thinking-dot { animation: dot-wave 1.05s ease-in-out infinite; }
+.thinking-dot:nth-child(2) { animation-delay: .14s; }
+.thinking-dot:nth-child(3) { animation-delay: .28s; }
+.glyph-fill { animation: glyph-fill .2s ease-out both; }
