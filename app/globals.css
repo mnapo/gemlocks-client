@@ -24,17 +24,18 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes coin-toss {
-  0% { transform: translateY(70px) rotateY(0deg); }
-  18% { transform: translateY(0) rotateY(360deg); }
-  42% { transform: translateY(-155px) rotateY(900deg); }
-  68% { transform: translateY(-90px) rotateY(1440deg); }
-  88% { transform: translateY(0) rotateY(1800deg); }
-  100% { transform: translateY(0) rotateY(1980deg); }
+  0% { transform: translateY(80px) rotateY(0deg); }
+  14% { transform: translateY(45px) rotateY(240deg); }
+  42% { transform: translateY(-135px) rotateY(720deg); }
+  53% { transform: translateY(-135px) rotateY(840deg); }
+  78% { transform: translateY(-30px) rotateY(1320deg); }
+  92% { transform: translateY(0) rotateY(1560deg); }
+  100% { transform: translateY(0) rotateY(1680deg); }
 }
 @keyframes coin-shadow {
-  0%, 18%, 88%, 100% { transform: scale(.7); opacity: .2; }
-  42% { transform: scale(.35); opacity: .08; }
-  68% { transform: scale(.5); opacity: .12; }
+  0%, 92%, 100% { transform: scale(.72); opacity: .2; }
+  42%, 53% { transform: scale(.35); opacity: .07; }
+  78% { transform: scale(.55); opacity: .12; }
 }
 .phase-enter { animation: phase-in .32s ease-out both; }
 .thinking-dot { animation: dot-wave 1.05s ease-in-out infinite; }
