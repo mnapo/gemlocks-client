@@ -21,48 +21,47 @@ export async function POST(req: NextRequest) {
   if (!token) return NextResponse.json({ error: "No hay una partida activa" }, { status: 400 });
 
   const { payload } = await jwtVerify(token, secret());
-  const guess = String((await req.json().catch(() => null))?.guess ?? "");
-
-  if (!isValidCode(guess)) {
-    return NextResponse.json({ error: "El código debe tener 4 dígitos únicos" }, { status: 400 });
-  }
+  const body = await req.json().catch(() => null);
+  const actor = body?.actor === "machine" ? "machine" : "human";
 
   const difficulty = Number(payload.difficulty) as DifficultyLevel;
   const humanGuesses = Array.isArray(payload.humanGuesses) ? payload.humanGuesses as GuessResult[] : [];
   const machineGuesses = Array.isArray(payload.machineGuesses) ? payload.machineGuesses as GuessResult[] : [];
   const sharedSecret = String(payload.sharedSecret);
 
-  const humanResult = scoreGuess(sharedSecret, guess);
-  const updatedHuman = [...humanGuesses, humanResult];
+  const guess = actor === "machine"
+    ? chooseMachineGuess(humanGuesses, difficulty)
+    : String(body?.guess ?? "");
 
-  if (humanResult.perfect === 4) {
-    return NextResponse.json({ status: "won", human: result(humanResult), machine: null });
+  if (!isValidCode(guess)) {
+    return NextResponse.json({ error: "El código debe tener 4 dígitos únicos" }, { status: 400 });
   }
 
-  const machineGuess = chooseMachineGuess(humanGuesses, difficulty);
-  const machineResult = scoreGuess(sharedSecret, machineGuess);
-  const updatedMachine = [...machineGuesses, machineResult];
-  const status = machineResult.perfect === 4 ? "lost" : "playing";
+  const attack = scoreGuess(sharedSecret, guess);
 
-  const nextToken = await new SignJWT({
+  const nextHuman = actor === "human" ? [...humanGuesses, attack] : humanGuesses;
+  const nextMachine = actor === "machine" ? [...machineGuesses, attack] : machineGuesses;
+  const won = attack.perfect === 4;
+
+  if (won) {
+    return NextResponse.json({ status: actor === "human" ? "won" : "lost", actor, result: result(attack) });
+  }
+
+  const tokenPayload = {
     sharedSecret,
     difficulty,
     starter: payload.starter,
-    humanGuesses: updatedHuman,
-    machineGuesses: updatedMachine,
-  })
+    humanGuesses: nextHuman,
+    machineGuesses: nextMachine,
+  };
+
+  const nextToken = await new SignJWT(tokenPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("2h")
     .sign(secret());
 
-  const res = NextResponse.json({
-    status,
-    human: result(humanResult),
-    machine: result(machineResult),
-    starter: payload.starter,
-  });
-
+  const res = NextResponse.json({ status: "playing", actor, result: result(attack) });
   res.cookies.set(GAME_COOKIE, nextToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -70,6 +69,5 @@ export async function POST(req: NextRequest) {
     path: "/",
     maxAge: 60 * 60 * 2,
   });
-
   return res;
 }
