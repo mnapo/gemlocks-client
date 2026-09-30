@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bot, Check, Trash2, User } from "lucide-react";
+import { Bot, Check, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 
 type Result = { guess: string; perfect: number; regular: number };
@@ -59,15 +59,15 @@ function GlyphSelector({
         <button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="ml-1 flex h-10 w-10 items-center justify-center text-red-500 transition hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button>
         <button type="button" onClick={randomize} disabled={discarded.size > 6} className="h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20">Aleatorio</button>
       </div>
-      {onToggleDiscard && <button type="button" onClick={onToggleDiscard} className={"flex h-10 items-center gap-1.5 border px-4 text-xs transition " + (discardMode ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-white/50 hover:border-white/25 hover:text-white")}><Check size={14} strokeWidth={2} />{discardMode ? "Listo" : "Descartar"}</button>}
+      {onToggleDiscard && <button type="button" onClick={onToggleDiscard} className={"flex h-10 items-center gap-1.5 border px-4 text-xs transition " + (discardMode ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-white/50 hover:border-white/25 hover:text-white")}>{discardMode && <Check size={14} strokeWidth={2} />}{discardMode ? "Listo" : "Descartar"}</button>}
     </div>
-    <div className="mt-5 grid grid-cols-5 gap-2">
+    {discardMode && <div className="mb-2 border border-white/10 px-3 py-2 text-xs text-white/45">Seleccioná qué glifos querés descartar:</div>}<div className="mt-5 grid grid-cols-5 gap-2">
       {Array.from({ length: 10 }, (_, index) => {
         const digit = String(index);
         const used = value.includes(digit);
         const isDiscarded = discarded.has(digit);
         return <button key={digit} type="button" disabled={!discardMode && (isDiscarded || used || value.length >= 4)} onClick={() => addDigit(digit)} className={"relative h-10 border font-mono text-sm transition " + (isDiscarded ? "border-red-500/25 text-red-500/70" : "border-white/10 bg-white/[0.02] hover:border-white/25") + (discardMode && !isDiscarded ? " border-emerald-500/30 hover:border-emerald-400/60" : "") + ((!discardMode && (isDiscarded || used || value.length >= 4)) ? " cursor-not-allowed opacity-20" : "")}>
-          <span className={isDiscarded ? "line-through decoration-2" : ""}>{digit}</span>
+          <span className={"relative inline-flex " + (isDiscarded ? "text-red-400" : "")}>{digit}{isDiscarded && <X className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 opacity-40" size={22} strokeWidth={2.5} />}</span>
         </button>;
       })}
     </div>
