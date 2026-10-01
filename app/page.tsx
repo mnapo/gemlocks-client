@@ -21,7 +21,7 @@ export default async function Home() {
         <section className="flex flex-1 flex-col items-center justify-center text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-white/35">Bienvenido/a</p>
           <h1 className="mt-4 text-4xl font-medium tracking-tight">{user.name || user.email}</h1>
-          <p className="mt-3 text-sm text-white/40">Raise your mind</p>
+          <div className="mt-4 flex items-center justify-center gap-4" aria-label="Gemlocks"><span className="home-gem" /><span className="home-gem" /><span className="home-gem" /></div>
           <Link href="/game" className="mt-8 bg-[#f5f5f5] px-10 py-3 text-sm font-medium text-[#0b0b0b] transition hover:bg-white">Jugar</Link><TutorialModal className="mt-4" />
         </section>
       </div>
