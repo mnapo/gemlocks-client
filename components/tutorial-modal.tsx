@@ -17,7 +17,7 @@ function Visual({ type }: { type:string }) {
   if(type==="secret") return <div className="tutorial-visual"><div className="flex gap-2">{["2","7","4","9"].map((n,i)=><span key={n} className="tutorial-glyph tutorial-pop" style={{animationDelay:i*90+"ms"}}>{n}</span>)}</div></div>;
   if(type==="difficulty") return <div className="tutorial-visual"><div className="w-48 space-y-2">{[1,2,3,4,5].map((n)=><div key={n} className={"h-6 border px-2 text-[9px] leading-[22px] tutorial-difficulty "+([1,3,5].includes(n)?"tutorial-difficulty-cycle":"")}>Dificultad {n}</div>)}</div></div>;
   if(type==="coin") return <div className="tutorial-visual"><div className="tutorial-coin">G</div></div>;
-  if(type==="attack") return <div className="tutorial-visual"><div className="flex items-center gap-5"><div className="flex gap-1.5">{["3","8","1","6"].map((n,i)=><span key={n} className="tutorial-small-glyph tutorial-pop" style={{animationDelay:i*90+"ms"}}>{n}</span>)}</div><span className="text-2xl">⚔️</span></div></div>;
+  if(type==="attack") return <div className="tutorial-visual"><div className="flex items-center gap-5"><div className="flex gap-1.5">{["3","8","1","6"].map((n,i)=><span key={n} className="tutorial-small-glyph tutorial-pop" style={{animationDelay:i*90+"ms"}}>{n}</span>)}</div><span className="tutorial-swords">⚔️</span></div></div>;
   if(type==="results") return <div className="tutorial-visual"><div className="tutorial-results">
   <div className="tutorial-code-row"><span className="tutorial-result-label">Secreto →</span><div className="tutorial-result-code">{["6","8","4","2"].map((n,i)=><span key={n} className={"tutorial-result-glyph tutorial-secret-glyph-"+i}>{n}</span>)}</div></div>
   <div className="tutorial-code-row"><span className="tutorial-result-label">Ataque →</span><div className="tutorial-result-code">{["3","8","1","6"].map((n,i)=><span key={n} className={"tutorial-result-glyph tutorial-attack-glyph-"+i}>{n}</span>)}</div></div>
@@ -33,7 +33,7 @@ export default function TutorialModal({triggerLabel="¿Cómo se juega?",variant=
   useEffect(()=>{ if(!open)return; return()=>{}; },[open,index]);
   return <>
     <button type="button" onClick={()=>{setIndex(0);setOpen(true)}} className={(variant==="outline"?"border border-white/15 px-4 py-2 text-xs text-white/55 transition hover:border-white/30 hover:text-white ":"text-xs text-white/40 transition hover:text-white/75 ")+className}>{triggerLabel}</button>
-    {open&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-sm overflow-hidden" role="dialog" aria-modal="true">
+    {open&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-sm" role="dialog" aria-modal="true">
       <div className="w-full max-w-lg border border-white/10 bg-[#0b0b0b] p-6 shadow-2xl">
         <div className="flex items-center justify-between"><span className="text-xs uppercase tracking-[0.25em] text-white/30">tutorial</span><button type="button" onClick={()=>setOpen(false)} className="text-white/35 hover:text-white" aria-label="Cerrar">×</button></div>
         <Visual type={slide.visual}/><h2 className="mt-6 text-xl font-medium">{slide.title}</h2><p className="mt-3 min-h-14 text-sm leading-6 text-white/45">{slide.text}</p>
