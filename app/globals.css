@@ -63,21 +63,20 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
 .tutorial-secret-glyph-1,.tutorial-attack-glyph-1{animation:tutorial-perfect-highlight 4.8s ease-in-out infinite}
 .tutorial-secret-glyph-0,.tutorial-attack-glyph-3{animation:tutorial-regular-highlight 4.8s ease-in-out infinite}
 .tutorial-result-bottom{position:absolute;left:62px;top:102px;display:flex;flex-direction:column;gap:5px}.tutorial-result-item{display:flex;align-items:center;gap:7px;opacity:0;font-size:10px}.perfect-result{color:#34d399;animation:tutorial-result-perfect 4.8s ease-in-out infinite}.regular-result{color:#fbbf24;animation:tutorial-result-regular 4.8s ease-in-out infinite}.tutorial-result-value{font-family:monospace;font-size:15px}.tutorial-result-item span:last-child{order:2}
-.tutorial-discard-seq{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08)}
 .tutorial-discard-seq svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;color:#ef4444}
 .tutorial-discard-seq:nth-child(3){animation:tutorial-discard-cycle 7.2s linear infinite}
-.tutorial-discard-seq:nth-child(6){animation:tutorial-discard-cycle 7.2s linear 1.2s infinite}
-.tutorial-discard-seq:nth-child(9){animation:tutorial-discard-cycle 7.2s linear 2.4s infinite}
+.tutorial-discard-seq:nth-child(6){animation:tutorial-discard-cycle 7.2s linear 2.4s infinite}
+.tutorial-discard-seq:nth-child(9){animation:tutorial-discard-cycle 7.2s linear 4.8s infinite}
 .tutorial-discard-seq:nth-child(3) svg{animation:tutorial-discard-x-cycle 7.2s linear infinite}
-.tutorial-discard-seq:nth-child(6) svg{animation:tutorial-discard-x-cycle 7.2s linear 1.2s infinite}
-.tutorial-discard-seq:nth-child(9) svg{animation:tutorial-discard-x-cycle 7.2s linear 2.4s infinite}
-.tutorial-swords{display:inline-block;font-size:2rem;animation:tutorial-swords-pulse 1.4s ease-in-out infinite}
+.tutorial-discard-seq:nth-child(6) svg{animation:tutorial-discard-x-cycle 7.2s linear 2.4s infinite}
+.tutorial-discard-seq:nth-child(9) svg{animation:tutorial-discard-x-cycle 7.2s linear 4.8s infinite}
+.tutorial-swords{display:inline-block;font-size:2rem;animation:tutorial-swords-pulse 1.4s ease-in-out infinite;transform-origin:center}
 @keyframes tutorial-difficulty-cycle{0%,100%{opacity:.18;transform:scale(1)}8%,18%{opacity:1;transform:scale(1.03)}26%,100%{opacity:.18;transform:scale(1)}}
 @keyframes tutorial-coin{0%,100%{transform:translateY(70px) rotateY(0)}45%{transform:translateY(-55px) rotateY(900deg)}55%{transform:translateY(-55px) rotateY(1080deg)}}
 @keyframes tutorial-perfect-highlight{0%,30%,100%{border-color:rgba(255,255,255,.15);box-shadow:none;color:rgba(255,255,255,.7)}5%,24%{border-color:rgba(52,211,153,.9);box-shadow:0 0 14px rgba(52,211,153,.35);color:#34d399}}
 @keyframes tutorial-regular-highlight{0%,48%,100%{border-color:rgba(255,255,255,.15);box-shadow:none;color:rgba(255,255,255,.7)}58%,76%{border-color:rgba(251,191,36,.9);box-shadow:0 0 14px rgba(251,191,36,.3);color:#fbbf24}}
 @keyframes tutorial-result-perfect{0%,24%{opacity:0;transform:translateY(3px)}27%,48%{opacity:1;transform:translateY(0)}100%{opacity:1}}
 @keyframes tutorial-result-regular{0%,58%{opacity:0;transform:translateY(3px)}61%,78%{opacity:1;transform:translateY(0)}100%{opacity:1}}
-@keyframes tutorial-discard-cycle{0%,7%{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08);transform:scale(1)}10%,18%{color:rgba(248,113,113,.8);border-color:rgba(239,68,68,.75);transform:scale(1.04)}21%,50%{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08);transform:scale(1)}53%,61%{color:rgba(248,113,113,.8);border-color:rgba(239,68,68,.75);transform:scale(1.04)}64%,100%{color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.08);transform:scale(1)}}
-@keyframes tutorial-discard-x-cycle{0%,7%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-25deg)}10%,18%{opacity:.4;transform:translate(-50%,-50%) scale(1) rotate(0)}21%,50%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-25deg)}53%,61%{opacity:.4;transform:translate(-50%,-50%) scale(1) rotate(0)}64%,100%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-25deg)}}
+@keyframes tutorial-discard-cycle{0%,7%,21%,100%{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.12);transform:scale(1)}10%,18%{color:rgba(248,113,113,.8);border-color:rgba(239,68,68,.75);transform:scale(1.04)}}
+@keyframes tutorial-discard-x-cycle{0%,7%,21%,100%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-25deg)}10%,18%{opacity:.4;transform:translate(-50%,-50%) scale(1) rotate(0)}}
 @keyframes tutorial-swords-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
