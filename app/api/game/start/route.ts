@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateCodes, isValidCode } from "@/lib/game/engine";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import { SignJWT } from "jose";
+import { randomUUID } from "crypto";
 
 const GAME_COOKIE = "gemlocks_game";
 
@@ -28,8 +29,10 @@ export async function POST(req: NextRequest) {
   while (machineSecret === humanSecret) machineSecret = codes[Math.floor(Math.random() * codes.length)];
 
   const starter = Math.random() < 0.5 ? "human" : "machine";
+  const gameId = randomUUID();
 
   const token = await new SignJWT({
+    gameId,
     humanSecret,
     machineSecret,
     difficulty,
