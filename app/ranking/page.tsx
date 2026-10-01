@@ -24,7 +24,7 @@ export default function RankingPage() {
 
   return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-      <header className="border-b border-white/10 py-5">
+      <header className="flex items-center justify-between border-b border-white/10 py-5"><a href="/" className="text-xs text-white/40 transition hover:text-white">Volver</a>
         <h1 className="text-sm font-medium tracking-tight">ranking</h1>
       </header>
       <section className="flex-1 py-10">
