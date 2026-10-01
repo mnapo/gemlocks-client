@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { jwtVerify, SignJWT } from "jose";
 import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
@@ -29,6 +31,7 @@ export async function POST(req: NextRequest) {
   const machineSecret = String(payload.machineSecret);
   const starter = payload.starter === "machine" ? "machine" : "human";
   const firstWinner = payload.firstWinner === "human" || payload.firstWinner === "machine" ? payload.firstWinner : null;
+  const gameId = String(payload.gameId ?? "");
   const finalTurnUsed = payload.finalTurnUsed === true;
 
   if (firstWinner && finalTurnUsed) return NextResponse.json({ error: "La partida ya terminó" }, { status: 409 });
@@ -49,6 +52,7 @@ export async function POST(req: NextRequest) {
       return res;
     }
     const status = actor === "human" ? "won" : "lost";
+    await recordResult(req, gameId, status);
     const nextToken = await signGame({ humanSecret, machineSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner: actor, finalTurnUsed: true });
     const res = NextResponse.json({ status, actor, result: result(attack) });
     setGameCookie(res, nextToken);
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
 
   if (firstWinner && actor !== firstWinner) {
     const status = won ? "draw" : firstWinner === "human" ? "won" : "lost";
+    await recordResult(req, gameId, status);
     const nextToken = await signGame({ humanSecret, machineSecret, difficulty, starter, humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed: true });
     const res = NextResponse.json({ status, actor, result: result(attack) });
     setGameCookie(res, nextToken);
@@ -75,4 +80,21 @@ async function signGame(payload: Record<string, unknown>) {
 
 function setGameCookie(res: NextResponse, token: string) {
   res.cookies.set(GAME_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 2 });
+}
+
+async function recordResult(req: NextRequest, gameId: string, status: "won" | "lost" | "draw") {
+  if (!gameId) throw new Error("Falta el identificador de la partida.");
+
+  const sessionToken = req.cookies.get(SESSION_COOKIE)?.value;
+  const user = sessionToken ? await verifySessionToken(sessionToken) : null;
+  if (!user) throw new Error("Sesión inválida.");
+
+  const result = status === "won" ? "victory" : status === "lost" ? "defeat" : "draw";
+  const { error } = await getAdminClient().rpc("record_game_result", {
+    p_user_id: user.sub,
+    p_game_id: gameId,
+    p_result: result,
+  });
+
+  if (error) throw error;
 }
