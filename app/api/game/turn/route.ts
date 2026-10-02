@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
-import { finishGame, loadGame, touchGame, setGameCookie, signGameId } from "@/lib/game/session";
+import { finishGame, loadGame, touchGame, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
 
 function result(score: GuessResult) { return { guess: score.guess, perfect: score.perfect, regular: score.regular }; }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     finalTurnUsed = true;
   }
 
-  const nextState = { ...state, currentPlayer: actor === "human" ? "machine" : "human", humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed };
+  const nextState: GameState = { ...state, currentPlayer: actor === "human" ? "machine" : "human", humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed };
   if (status === "playing") {
     await touchGame(state.gameId, state.userId, nextState);
   } else if (status === "final-turn") {
