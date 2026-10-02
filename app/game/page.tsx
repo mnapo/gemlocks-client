@@ -163,6 +163,17 @@ export default function GamePage() {
 
   useEffect(() => {
     if (restoring || ["setup", "won", "lost", "draw"].includes(phase)) return;
+    window.history.pushState({ gemlocksGame: true }, "", window.location.href);
+    const onPopState = () => {
+      window.history.pushState({ gemlocksGame: true }, "", window.location.href);
+      requestClose();
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [phase, restoring]);
+
+  useEffect(() => {
+    if (restoring || ["setup", "won", "lost", "draw"].includes(phase)) return;
     const heartbeat = window.setInterval(() => {
       fetch("/api/game/current", { cache: "no-store" }).catch(() => {});
     }, 30000);
