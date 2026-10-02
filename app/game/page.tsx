@@ -213,7 +213,7 @@ export default function GamePage() {
       const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? "No se pudo iniciar la partida"); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setFinalActor(null); setDiscardMode(false); setMobileOptions(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
@@ -238,7 +238,7 @@ export default function GamePage() {
       const { res, data } = await attack("human", guess);
       if (!res.ok) { setError(data?.error ?? "No se pudo procesar el ataque"); return; }
       const result = data.result as Result;
-      setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false); setMobileOptions(false);
+      setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false);
       if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
       else setPhase(data.status === "won" ? "won" : "player-result");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
