@@ -240,7 +240,8 @@ export default function GamePage() {
       const result = data.result as Result;
       setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false);
       if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
-      else setPhase(data.status === "won" ? "won" : "player-result");
+      else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
+      else setPhase("player-result");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
   }
@@ -265,7 +266,8 @@ export default function GamePage() {
         const result = data.result as Result;
         setMachineResults((current) => [...current, result]); setLastResult(result);
         if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
-        else setPhase(data.status === "lost" ? "lost" : "opponent-result");
+        else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
+        else setPhase("opponent-result");
       } catch { if (active) setError("Error de conexión. Intentá de novo."); }
     }, 1200);
     return () => { active = false; window.clearTimeout(timer); };
