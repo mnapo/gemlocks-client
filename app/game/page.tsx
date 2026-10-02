@@ -183,11 +183,19 @@ export default function GamePage() {
   async function confirmAbandon() {
     setConfirmClose(false);
     setLoading(true);
+    setError("");
     try {
-      await fetch("/api/game/abandon", { method: "POST", keepalive: true });
+      const res = await fetch("/api/game/abandon", { method: "POST", keepalive: true });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "No se pudo cerrar la partida.");
+        return;
+      }
+      setPhase("lost");
+    } catch {
+      setError("Error de conexión. La partida no pudo cerrarse.");
     } finally {
       setLoading(false);
-      setPhase("lost");
     }
   }
 
