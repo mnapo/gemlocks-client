@@ -22,9 +22,9 @@ export const STORE_SECTIONS: Record<StoreSectionId, { title: string; subtitle: s
     title: "Temas",
     subtitle: "Modificá la estética de todo el juego",
     items: [
-      { id: "theme-light", name: "Light", price: 5 },
-      { id: "theme-pink", name: "Pink", price: 5 },
-      { id: "theme-ocean", name: "Ocean", price: 5 },
+      { id: "theme-light", name: "Light", price: 5, preview: "theme-light" },
+      { id: "theme-pink", name: "Pink", price: 5, preview: "theme-pink" },
+      { id: "theme-ocean", name: "Ocean", price: 5, preview: "theme-ocean" },
     ],
   },
   avatares: {
