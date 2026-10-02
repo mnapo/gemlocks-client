@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
-import { finishGame, loadGame, touchGame, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
+import { finishGame, loadGame, touchGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
 
 function result(score: GuessResult) { return { guess: score.guess, perfect: score.perfect, regular: score.regular }; }
 
@@ -60,6 +60,10 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ status, actor, result: result(attack), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}) });
-  setGameCookie(res, await signGameId(state.gameId));
+  if (status === "won" || status === "lost" || status === "draw") {
+    clearGameCookie(res);
+  } else {
+    setGameCookie(res, await signGameId(state.gameId));
+  }
   return res;
 }
