@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const res = NextResponse.json({ status, actor, result: result(attack), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}) });
+  const res = NextResponse.json({ status, actor, result: result(attack), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
   if (status === "won" || status === "lost" || status === "draw") {
     clearGameCookie(res);
   } else {
