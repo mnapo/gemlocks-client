@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Gem, Coins, Sparkles, Zap, Palette, UserRound, Swords, Package, Circle } from "lucide-react";
+import { ArrowRight, Gem, Coins, Sparkles, Zap, Palette, UserRound, Swords, Package } from "lucide-react";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 const sections = [
@@ -85,36 +85,24 @@ export default async function StorePage() {
           </button>
 
           <div className="mt-8 space-y-3">
-            {sections.map(({ title, subtitle, icon: Icon, locked, items }) => (
-              <section key={title} className="border border-white/10 bg-white/[0.02]">
-                <button type="button" disabled={locked} className={"flex w-full items-center gap-4 p-4 text-left " + (locked ? "cursor-not-allowed opacity-45" : "cursor-default")}>
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60">
-                    <Icon size={27} strokeWidth={1.5} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">{title}</span>
-                    <span className="mt-1 block text-xs leading-5 text-white/35">{subtitle}</span>
-                  </span>
-                  {locked ? <ArrowRight className="shrink-0 text-white/20" size={20} strokeWidth={1.7} /> : <span className="text-xs text-white/25">{items?.length ?? 0} ítems</span>}
-                </button>
-
-                {!locked && items && (
-                  <div className="grid grid-cols-2 gap-2 border-t border-white/10 p-3 sm:grid-cols-3">
-                    {items.map((item) => (
-                      <button key={item.name} type="button" className="group min-w-0 border border-white/10 bg-white/[0.02] p-3 text-left transition hover:border-white/20">
-                        <div className="flex h-14 items-center justify-center overflow-hidden text-xl text-white/65">
-                          {("preview" in item && item.preview) ? <span>{item.preview}</span> : <Circle size={28} strokeWidth={1.4} className="text-white/30" />}
-                        </div>
-                        <div className="mt-2 truncate text-xs font-medium">{item.name}</div>
-                        <div className="mt-2 flex items-center gap-1 text-xs text-cyan-300/75">
-                          <Gem size={13} strokeWidth={1.7} /> {item.price}
-                        </div>
-                      </button>
-                    ))}
+            {sections.map(({ title, subtitle, icon: Icon, locked }) => {
+              const target = title.toLowerCase().replace(" ", "-");
+              return locked ? (
+                <section key={title} className="border border-white/10 bg-white/[0.02]">
+                  <div className="flex w-full items-center gap-4 p-4 text-left opacity-45">
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={27} strokeWidth={1.5} /></span>
+                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-white/35">{subtitle}</span></span>
+                    <ArrowRight className="shrink-0 text-white/20" size={20} strokeWidth={1.7} />
                   </div>
-                )}
-              </section>
-            ))}
+                </section>
+              ) : (
+                <Link key={title} href={"/store/" + target} className="flex w-full items-center gap-4 border border-white/10 bg-white/[0.02] p-4 text-left transition hover:border-white/20">
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={27} strokeWidth={1.5} /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-white/35">{subtitle}</span></span>
+                  <ArrowRight className="shrink-0 text-white/20" size={20} strokeWidth={1.7} />
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>
