@@ -36,8 +36,10 @@ export default function StoreItems({ items, gems: initialGems, owned: initialOwn
           const canBuy = gems >= item.price;
           return (
             <button key={item.id} type="button" disabled={isOwned || !canBuy} onClick={() => { setError(""); setPending(item); }} className={"border p-4 text-left transition " + (isOwned ? "cursor-default border-emerald-500/20 bg-emerald-500/[0.04] opacity-70" : canBuy ? "border-white/10 bg-white/[0.02] hover:border-white/25" : "cursor-not-allowed border-white/10 bg-white/[0.015] opacity-35")}>
-              <div className="flex h-20 items-center justify-center text-2xl text-white/65">{item.preview ?? <span className="h-10 w-10 rounded-full border border-white/15" />}</div>
-              <div className="mt-3 text-sm font-medium">{item.name}</div>
+              <div className="flex h-20 items-center justify-center text-2xl text-white/65">
+                {item.image ? <img src={item.image} alt="" className="h-20 w-20 object-contain" /> : item.preview ? <span>{item.preview}</span> : <span className="h-full w-full border border-white/10 bg-[linear-gradient(135deg,#f5f5f5_0_33%,#f3a7c7_33%_66%,#70c9e8_66%)]" />}
+              </div>
+              {!item.image && <div className="mt-3 text-sm font-medium">{item.name}</div>}
               <div className="mt-2 flex items-center gap-1.5 text-xs text-cyan-300/75"><Gem size={13} /> {item.price}</div>
               {isOwned && <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-emerald-400/70">Adquirido</div>}
             </button>
