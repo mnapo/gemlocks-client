@@ -103,7 +103,7 @@ export default async function StorePage() {
                     {items.map((item) => (
                       <button key={item.name} type="button" className="group min-w-0 border border-white/10 bg-white/[0.02] p-3 text-left transition hover:border-white/20">
                         <div className="flex h-14 items-center justify-center overflow-hidden text-xl text-white/65">
-                          {item.preview ? <span>{item.preview}</span> : <Circle size={28} strokeWidth={1.4} className="text-white/30" />}
+                          {("preview" in item && item.preview) ? <span>{item.preview}</span> : <Circle size={28} strokeWidth={1.4} className="text-white/30" />}
                         </div>
                         <div className="mt-2 truncate text-xs font-medium">{item.name}</div>
                         <div className="mt-2 flex items-center gap-1 text-xs text-cyan-300/75">
