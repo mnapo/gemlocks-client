@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadGame } from "@/lib/game/session";
+import { loadGame, touchGame } from "@/lib/game/session";
 
 export async function GET(req: NextRequest) {
   const game = await loadGame(req);
   if (!game) return NextResponse.json({ active: false });
+  await touchGame(game.state.gameId, game.state.userId);
   return NextResponse.json({ active: true, state: {
     gameId: game.state.gameId,
     difficulty: game.state.difficulty,
