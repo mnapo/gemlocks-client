@@ -3,6 +3,7 @@ import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
 import { finishGame, loadGame, touchGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
+import { getGlyphSetForCode } from "@/lib/game/glyphs";
 
 function result(score: GuessResult) { return { guess: score.guess, perfect: score.perfect, regular: score.regular }; }
 
@@ -12,13 +13,17 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const actor = body?.actor === "machine" ? "machine" : "human";
   const state = game.state;
+  const glyphSet = getGlyphSetForCode(state.humanSecret);
+  if (!glyphSet) return NextResponse.json({ error: "Set de glifos inválido" }, { status: 500 });
+  const alphabet = glyphSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value)).join("");
+
   if (actor !== state.currentPlayer) return NextResponse.json({ error: "No es el turno de ese jugador" }, { status: 409 });
 
   const difficulty = Number(state.difficulty) as DifficultyLevel;
-  const guess = actor === "machine" ? chooseMachineGuess(state.machineGuesses, difficulty) : String(body?.guess ?? "");
-  if (!isValidCode(guess)) return NextResponse.json({ error: "El código debe tener 4 glifos únicos" }, { status: 400 });
+  const guess = actor === "machine" ? chooseMachineGuess(state.machineGuesses, difficulty, Array.from(alphabet)) : String(body?.guess ?? "");
+  if (!isValidCode(guess, alphabet)) return NextResponse.json({ error: "El código debe tener 4 glifos únicos" }, { status: 400 });
 
-  const attack = scoreGuess(actor === "human" ? state.machineSecret : state.humanSecret, guess);
+  const attack = scoreGuess(actor === "human" ? state.machineSecret : state.humanSecret, guess, alphabet);
   const nextHuman = actor === "human" ? [...state.humanGuesses, attack] : state.humanGuesses;
   const nextMachine = actor === "machine" ? [...state.machineGuesses, attack] : state.machineGuesses;
   const won = attack.perfect === 4;
