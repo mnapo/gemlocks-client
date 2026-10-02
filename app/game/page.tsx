@@ -130,6 +130,57 @@ export default function GamePage() {
   const [loading, setLoading] = useState(false);
   const [discardMode, setDiscardMode] = useState(false);
   const [discarded, setDiscarded] = useState<Set<string>>(new Set());
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [restoring, setRestoring] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/game/current", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!active || !data?.active) return;
+        const state = data.state;
+        setDifficulty(state.difficulty);
+        setStarter(state.starter);
+        setMySecret(state.humanSecret);
+        setHumanResults(state.humanGuesses ?? []);
+        setMachineResults(state.machineGuesses ?? []);
+        if (state.firstWinner && !state.finalTurnUsed) {
+          setFinalActor(state.firstWinner === "human" ? "machine" : "human");
+          setPhase("final-turn");
+        } else if (state.currentPlayer === "human") {
+          setPhase("player-turn");
+        } else {
+          setPhase("thinking");
+        }
+      } finally {
+        if (active) setRestoring(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (restoring || ["setup", "won", "lost", "draw"].includes(phase)) return;
+    const heartbeat = window.setInterval(() => {
+      fetch("/api/game/current", { cache: "no-store" }).catch(() => {});
+    }, 30000);
+    return () => window.clearInterval(heartbeat);
+  }, [phase, restoring]);
+
+  async function confirmAbandon() {
+    setConfirmClose(false);
+    setLoading(true);
+    try {
+      await fetch("/api/game/abandon", { method: "POST", keepalive: true });
+    } finally {
+      setLoading(false);
+      setPhase("lost");
+    }
+  }
+
+  function requestClose() { setConfirmClose(true); }
 
   async function startGame() {
     setLoading(true); setError("");
@@ -200,10 +251,12 @@ export default function GamePage() {
   function continueAfterOpponentResult() { setLastResult(null); setPhase("player-turn"); }
   function beginFinalTurn() { setLastResult(null); setPhase(finalActor === "human" ? "player-turn" : "thinking"); }
 
-  if (phase === "setup" || phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">Volver</Link></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p>{phase === "setup" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Nueva partida</h1><p className="mt-3 text-sm leading-6 text-white/40">Primero elegí la configuración de la partida.</p><button type="button" onClick={() => setPhase("difficulty")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Continuar</button><TutorialModal variant="outline" triggerLabel="Ver Tutorial" className="mt-3 w-full" /></>}{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí tu código</h1><p className="mt-3 text-sm leading-6 text-white/40">El adversario intentará descubrir estos 4 glifos.</p><GlyphSelector value={mySecret} onChange={setMySecret}/><button type="button" onClick={startGame} disabled={loading || mySecret.length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Iniciando..." : "Comenzar partida"}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el código secreto del adversario.</p><div className="mt-8 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => setPhase("code-select")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Seleccionar</button></>}</section></div></main>;
+  if (restoring) return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center"><p className="text-sm text-white/40">Recuperando partida...</p></div></main>;
+
+  if (phase === "setup" || phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><button type="button" onClick={requestClose} className="text-xs text-white/40 hover:text-white/75">Volver</button></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p>{phase === "setup" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Nueva partida</h1><p className="mt-3 text-sm leading-6 text-white/40">Primero elegí la configuración de la partida.</p><button type="button" onClick={() => setPhase("difficulty")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Continuar</button><TutorialModal variant="outline" triggerLabel="Ver Tutorial" className="mt-3 w-full" /></>}{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí tu código</h1><p className="mt-3 text-sm leading-6 text-white/40">El adversario intentará descubrir estos 4 glifos.</p><GlyphSelector value={mySecret} onChange={setMySecret}/><button type="button" onClick={startGame} disabled={loading || mySecret.length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Iniciando..." : "Comenzar partida"}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el código secreto del adversario.</p><div className="mt-8 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => setPhase("code-select")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Seleccionar</button></>}</section></div></main>;
 
   const inMatch = !["coin-toss", "coin-result"].includes(phase);
-  return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><span className="text-xs text-white/40">Nivel {difficulty}</span></header><section key={phase} className="phase-enter flex flex-1 flex-col py-10">
+  return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><button type="button" onClick={requestClose} className="text-sm font-medium tracking-tight">gemlocks</button><span className="text-xs text-white/40">Nivel {difficulty}</span></header><section key={phase} className="phase-enter flex flex-1 flex-col py-10">
     {!inMatch && phase === "coin-toss" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo</p><h1 className="mt-4 text-3xl font-medium">¿Quién empieza?</h1><Coin /></div>}
     {!inMatch && phase === "coin-result" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo terminado</p><h1 className="mt-4 text-3xl font-medium">{starter === "human" ? "Empezás vos." : "Empieza la máquina."}</h1><p className="mt-4 text-sm text-white/40">{starter === "human" ? "Tenés el primer ataque." : "La máquina tiene el primer ataque."}</p><button type="button" onClick={beginMatch} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Comenzar</button></div>}
     {inMatch && <><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-white/35">{starter === "human" ? "vos empezaste" : "la máquina empezó"}</p><h1 className="mt-3 text-3xl font-medium tracking-tight">{phaseTitle[phase as Exclude<Phase, "setup">]}</h1></div><div className="text-right text-xs text-white/30"><div>Tu código:</div><div className="font-mono tracking-widest text-white/55">{mySecret}</div><div className="mt-2">{humanResults.length} ataques tuyos</div><div>{machineResults.length} de la máquina</div></div></div>
