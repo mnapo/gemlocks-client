@@ -1,59 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCodes, isValidCode } from "@/lib/game/engine";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
-import { SignJWT } from "jose";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { randomUUID } from "crypto";
-
-const GAME_COOKIE = "gemlocks_game";
-
-function secret() {
-  const value = process.env.AUTH_JWT_SECRET;
-  if (!value) throw new Error("Falta AUTH_JWT_SECRET.");
-  return new TextEncoder().encode(value);
-}
+import { signGameId, setGameCookie } from "@/lib/game/session";
 
 export async function POST(req: NextRequest) {
+  const sessionToken = req.cookies.get(SESSION_COOKIE)?.value;
+  const user = sessionToken ? await verifySessionToken(sessionToken) : null;
+  if (!user) return NextResponse.json({ error: "Sesión inválida" }, { status: 401 });
+
   const body = await req.json().catch(() => null);
   const difficulty = Number(body?.difficulty) as DifficultyLevel;
   const humanSecret = String(body?.humanSecret ?? "");
+  if (!DIFFICULTIES.some((item) => item.level === difficulty)) return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
+  if (!isValidCode(humanSecret)) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
 
-  if (!DIFFICULTIES.some((item) => item.level === difficulty)) {
-    return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
-  }
-  if (!isValidCode(humanSecret)) {
-    return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
-  }
+  const client = getAdminClient();
+  const { data: existing } = await client.from("game_sessions").select("game_id").eq("user_id", user.sub).eq("status","active").limit(1).maybeSingle();
+  if (existing) return NextResponse.json({ error: "Ya tenés una partida activa" }, { status: 409 });
 
   const codes = generateCodes();
   let machineSecret = codes[Math.floor(Math.random() * codes.length)];
   while (machineSecret === humanSecret) machineSecret = codes[Math.floor(Math.random() * codes.length)];
-
   const starter = Math.random() < 0.5 ? "human" : "machine";
   const gameId = randomUUID();
+  const state = { gameId, userId: user.sub, humanSecret, machineSecret, difficulty, starter, currentPlayer: starter, humanGuesses: [], machineGuesses: [], firstWinner: null, finalTurnUsed: false };
 
-  const token = await new SignJWT({
-    gameId,
-    humanSecret,
-    machineSecret,
-    difficulty,
-    starter,
-    humanGuesses: [],
-    machineGuesses: [],
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("2h")
-    .sign(secret());
+  const { error } = await client.from("game_sessions").insert({ game_id: gameId, user_id: user.sub, state });
+  if (error) throw error;
 
-  const res = NextResponse.json({ ok: true, starter, humanSecret, machineSecret });
-
-  res.cookies.set(GAME_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 2,
-  });
-
+  const res = NextResponse.json({ ok: true, gameId, starter, humanSecret });
+  setGameCookie(res, await signGameId(gameId));
   return res;
 }
