@@ -101,6 +101,12 @@ export async function finishGame(gameId: string, userId: string, status: "victor
   return data === true;
 }
 
+export function clearGameCookie(res: NextResponse) {
+  res.cookies.set(GAME_COOKIE, "", {
+    httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0,
+  });
+}
+
 export function setGameCookie(res: NextResponse, token: string) {
   res.cookies.set(GAME_COOKIE, token, {
     httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 2,
