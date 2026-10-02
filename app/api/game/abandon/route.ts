@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
     await finishGame(game.state.gameId, game.state.userId, "defeat");
   } catch (error) {
     console.error("game/abandon failed:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "No se pudo registrar el abandono de la partida." }, { status: 500 });
+    const details = error && typeof error === "object" ? JSON.stringify(error) : String(error);
+    return NextResponse.json({ error: details || "No se pudo registrar el abandono de la partida." }, { status: 500 });
   }
   const res = NextResponse.json({ active: false, status: "lost" });
   res.cookies.set("gemlocks_game", "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
