@@ -78,3 +78,14 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
 export function getGlyphSet(id: GlyphSetId): GlyphSet {
   return GLYPH_SETS[id];
 }
+
+export function getGlyphSetForCode(code: string): GlyphSet | null {
+  const values = new Set(Array.from(code));
+  for (const set of Object.values(GLYPH_SETS)) {
+    const alphabet = set.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
+    if (Array.from(code).every((glyph) => alphabet.includes(glyph)) && Array.from(code).length === 4 && values.size === 4) {
+      return set;
+    }
+  }
+  return null;
+}
