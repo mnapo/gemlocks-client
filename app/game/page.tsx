@@ -137,7 +137,6 @@ export default function GamePage() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [mobileOptions, setMobileOptions] = useState(false);
-  const [mobileOptions, setMobileOptions] = useState(false);
 
   useEffect(() => {
     let active = true;
