@@ -4,7 +4,6 @@ import { jwtVerify, SignJWT } from "jose";
 import type { NextRequest, NextResponse } from "next/server";
 
 export const GAME_COOKIE = "gemlocks_game";
-export const GAME_TIMEOUT_MS = 90_000;
 
 export type GameState = {
   gameId: string;
@@ -55,10 +54,6 @@ export async function loadGame(req: NextRequest) {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  if (data.status === "active" && Date.now() - new Date(data.last_seen_at).getTime() > GAME_TIMEOUT_MS) {
-    await finishGame(gameId, user.sub, "defeat");
-    return null;
-  }
   return {
     ...data,
     state: {
