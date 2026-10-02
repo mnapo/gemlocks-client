@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bot, Check, Trash2, User, X } from "lucide-react";
+import { ArrowLeftCircle, Bot, Check, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
 
@@ -61,7 +61,7 @@ function GlyphSelector({
         <div className="flex gap-3">
           {Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">{value[index] ?? <span className="text-white/15">·</span>}</div>)}
         </div>
-        <button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="ml-1 flex h-10 w-10 items-center justify-center text-red-500 transition hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button>
+        <button type="button" title="Borrar último glifo" aria-label="Borrar último glifo" onClick={() => onChange(value.slice(0, -1))} disabled={!value} className="ml-1 flex h-10 w-10 items-center justify-center text-white/45 transition hover:text-white disabled:opacity-20"><ArrowLeftCircle size={19} strokeWidth={1.8} /></button><button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="flex h-10 w-10 items-center justify-center text-red-500 transition hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button>
         <button type="button" onClick={randomize} disabled={discarded.size > 6} className="h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20">Aleatorio</button>
       </div>
       {onToggleDiscard && <button type="button" onClick={onToggleDiscard} className={"flex h-10 items-center gap-1.5 border px-4 text-xs transition " + (discardMode ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-white/50 hover:border-white/25 hover:text-white")}>{discardMode && <Check size={14} strokeWidth={2} />}{discardMode ? "Listo" : "Descartar"}</button>}
