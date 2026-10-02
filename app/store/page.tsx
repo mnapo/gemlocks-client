@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Gem, Coins, Sparkles, Zap, Palette, UserRound, Swords, Package } from "lucide-react";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 const sections = [
   { title: "Gemas", subtitle: "Criptomoneda GLK", icon: Gem, locked: true },
@@ -57,6 +58,9 @@ export default async function StorePage() {
   const user = token ? await verifySessionToken(token) : null;
   if (!user) redirect("/login");
 
+  const { data: userData } = await getAdminClient().from("app_users").select("gems").eq("id", user.sub).single();
+  const gems = userData?.gems ?? 0;
+
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
       <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
@@ -75,7 +79,7 @@ export default async function StorePage() {
               </div>
               <div className="flex items-center justify-center gap-3">
                 <Gem className="text-cyan-300/80" size={25} strokeWidth={1.7} />
-                <div><div className="text-2xl font-medium">0</div><div className="text-xs text-white/35">Gemas</div></div>
+                <div><div className="text-2xl font-medium">{gems}</div><div className="text-xs text-white/35">Gemas</div></div>
               </div>
             </div>
           </div>
