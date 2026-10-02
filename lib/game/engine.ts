@@ -19,19 +19,26 @@ export interface GameState {
   machineFinalTurn: boolean;
 }
 
-export function isValidCode(code: string): boolean {
-  return code.length === CODE_LENGTH && /^\d{4}$/.test(code) && new Set(code).size === CODE_LENGTH;
+function codeGlyphs(code: string): string[] {
+  return Array.from(code);
 }
 
-export function generateCodes(): string[] {
+export function isValidCode(code: string, alphabet = DIGITS): boolean {
+  const glyphs = codeGlyphs(code);
+  const available = new Set(Array.from(alphabet));
+  return glyphs.length === CODE_LENGTH && glyphs.every((glyph) => available.has(glyph)) && new Set(glyphs).size === CODE_LENGTH;
+}
+
+export function generateCodes(alphabet = DIGITS): string[] {
+  const glyphs = Array.from(alphabet);
   const codes: string[] = [];
 
-  for (let a = 0; a <= 9; a++) {
-    for (let b = 0; b <= 9; b++) {
-      for (let c = 0; c <= 9; c++) {
-        for (let d = 0; d <= 9; d++) {
-          const code = `${a}${b}${c}${d}`;
-          if (isValidCode(code)) codes.push(code);
+  for (const a of glyphs) {
+    for (const b of glyphs) {
+      for (const c of glyphs) {
+        for (const d of glyphs) {
+          const code = a + b + c + d;
+          if (isValidCode(code, alphabet)) codes.push(code);
         }
       }
     }
@@ -40,32 +47,34 @@ export function generateCodes(): string[] {
   return codes;
 }
 
-export function scoreGuess(secret: string, guess: string): GuessResult {
-  if (!isValidCode(secret) || !isValidCode(guess)) {
-    throw new Error("El código debe tener 4 dígitos únicos.");
+export function scoreGuess(secret: string, guess: string, alphabet = DIGITS): GuessResult {
+  if (!isValidCode(secret, alphabet) || !isValidCode(guess, alphabet)) {
+    throw new Error("El código debe tener 4 glifos únicos.");
   }
 
+  const secretGlyphs = codeGlyphs(secret);
+  const guessGlyphs = codeGlyphs(guess);
   let perfect = 0;
   const secretRest: string[] = [];
   const guessRest: string[] = [];
 
   for (let i = 0; i < CODE_LENGTH; i++) {
-    if (secret[i] === guess[i]) {
+    if (secretGlyphs[i] === guessGlyphs[i]) {
       perfect++;
     } else {
-      secretRest.push(secret[i]);
-      guessRest.push(guess[i]);
+      secretRest.push(secretGlyphs[i]);
+      guessRest.push(guessGlyphs[i]);
     }
   }
 
-  const regular = guessRest.filter((digit) => secretRest.includes(digit)).length;
+  const regular = guessRest.filter((glyph) => secretRest.includes(glyph)).length;
 
   return { guess, perfect, regular };
 }
 
-export function filterCandidates(candidates: string[], result: GuessResult): string[] {
+export function filterCandidates(candidates: string[], result: GuessResult, alphabet = DIGITS): string[] {
   return candidates.filter((candidate) => {
-    const score = scoreGuess(candidate, result.guess);
+    const score = scoreGuess(candidate, result.guess, alphabet);
     return score.perfect === result.perfect && score.regular === result.regular;
   });
 }
@@ -74,8 +83,8 @@ export function hasWon(result: GuessResult): boolean {
   return result.perfect === CODE_LENGTH;
 }
 
-export function createGame(secret: string, starter: Player): GameState {
-  if (!isValidCode(secret)) throw new Error("Código secreto inválido.");
+export function createGame(secret: string, starter: Player, alphabet = DIGITS): GameState {
+  if (!isValidCode(secret, alphabet)) throw new Error("Código secreto inválido.");
 
   return {
     secret,
@@ -88,8 +97,8 @@ export function createGame(secret: string, starter: Player): GameState {
   };
 }
 
-export function playTurn(state: GameState, guess: string): GameState {
-  const result = scoreGuess(state.secret, guess);
+export function playTurn(state: GameState, guess: string, alphabet = DIGITS): GameState {
+  const result = scoreGuess(state.secret, guess, alphabet);
 
   return {
     ...state,
