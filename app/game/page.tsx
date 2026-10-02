@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeftCircle, Bot, Check, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
+import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, type GlyphSetId } from "@/lib/game/glyphs";
 
 type Result = { guess: string; perfect: number; regular: number };
 type Phase = "setup" | "code-select" | "difficulty" | "coin-toss" | "coin-result" | "player-turn" | "player-result" | "thinking" | "opponent-result" | "final-turn" | "won" | "lost" | "draw";
@@ -16,13 +17,37 @@ const phaseTitle: Record<Exclude<Phase, "setup">, string> = {
   lost: "La máquina ganó", draw: "Empate",
 };
 
-function Glyphs({ value }: { value: string }) {
-  return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">{value[index] ? <span className="glyph-fill">{value[index]}</span> : <span className="text-white/15">·</span>}</div>)}</div>;
+function Glyphs({ value, glyphSetId = DEFAULT_GLYPH_SET_ID }: { value: string; glyphSetId?: GlyphSetId }) {
+  const glyphSet = getGlyphSet(glyphSetId);
+  const glyphs = Array.from(value);
+  return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => {
+    const glyph = glyphSet.glyphs.find((item) => item.value === glyphs[index]);
+    return <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">
+      {glyphs[index] ? glyph?.asset ? <svg className="h-11 w-11" viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span className="glyph-fill">{glyphs[index]}</span> : <span className="text-white/15">·</span>}
+    </div>;
+  })}</div>;
+}
+
+function GlyphSetPicker({ value, onChange }: { value: GlyphSetId; onChange: (value: GlyphSetId) => void }) {
+  return <div className="mt-7 grid grid-cols-4 gap-2">
+    {Object.values(GLYPH_SETS).map((set) => {
+      const selected = value === set.id;
+      const preview = set.glyphs.slice(0, 4);
+      return <button key={set.id} type="button" onClick={() => onChange(set.id)} className={"min-w-0 border px-2 py-4 text-center transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}>
+        <div className="flex h-10 items-center justify-center gap-1 overflow-hidden">
+          {preview.map((glyph) => glyph.asset ? <svg key={glyph.id} className="h-8 w-8 shrink-0" viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span key={glyph.id} className="text-xl">{glyph.value}</span>)}
+        </div>
+        <span className="mt-3 block truncate text-xs text-white/60">{set.name}</span>
+        <span className={"mx-auto mt-2 flex h-4 w-4 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span>
+      </button>;
+    })}
+  </div>;
 }
 
 function GlyphSelector({
   value,
   onChange,
+  glyphSetId = DEFAULT_GLYPH_SET_ID,
   discardMode = false,
   onToggleDiscard,
   discarded = new Set<string>(),
@@ -30,41 +55,45 @@ function GlyphSelector({
 }: {
   value: string;
   onChange: (value: string) => void;
+  glyphSetId?: GlyphSetId;
   discardMode?: boolean;
   onToggleDiscard?: () => void;
-  onDiscard?: (digit: string) => void;
+  onDiscard?: (glyph: string) => void;
   discarded?: Set<string>;
 }) {
-  function addDigit(digit: string) {
+  const glyphSet = getGlyphSet(glyphSetId);
+  const glyphs = glyphSet.glyphs;
+  const selectedGlyphs = Array.from(value);
+
+  function addGlyph(glyph: string) {
     if (discardMode) {
-      if (discarded.has(digit)) {
-        onDiscard?.(digit);
+      if (discarded.has(glyph)) {
+        onDiscard?.(glyph);
         return;
       }
-      onChange(value.replaceAll(digit, ""));
-      onDiscard?.(digit);
+      onChange(selectedGlyphs.filter((item) => item !== glyph).join(""));
+      onDiscard?.(glyph);
       return;
     }
-    if (discarded.has(digit) || value.length >= 4 || value.includes(digit)) return;
-    onChange(value + digit);
+    if (discarded.has(glyph) || selectedGlyphs.length >= 4 || selectedGlyphs.includes(glyph)) return;
+    onChange(value + glyph);
   }
 
   function randomize() {
-    const available = Array.from({ length: 10 }, (_, i) => String(i)).filter((digit) => !discarded.has(digit));
+    const available = glyphs.map((item) => item.value).filter((glyph): glyph is string => Boolean(glyph) && !discarded.has(glyph));
     if (available.length < 4) return;
     onChange(available.sort(() => Math.random() - 0.5).slice(0, 4).join(""));
   }
 
   const [mobileOptions, setMobileOptions] = useState(false);
-
   const discardButton = onToggleDiscard && <button type="button" onClick={onToggleDiscard} className={"flex h-10 flex-1 items-center justify-center gap-1.5 border px-3 text-xs transition sm:flex-none sm:px-4 " + (discardMode ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-white/50 hover:border-white/25 hover:text-white")}>{discardMode && <Check size={14} strokeWidth={2} />}{discardMode ? "Listo" : "Descartar"}</button>;
   return <div className="mt-5 min-w-0">
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
         <div className="flex shrink-0 gap-2 sm:gap-3">
-          {Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl sm:h-14 sm:w-14">{value[index] ?? <span className="text-white/15">·</span>}</div>)}
+          {Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl sm:h-14 sm:w-14">{selectedGlyphs[index] ? glyphs.find((glyph) => glyph.value === selectedGlyphs[index])?.asset ? <svg className="h-10 w-10" viewBox="0 0 100 100"><use href={glyphs.find((glyph) => glyph.value === selectedGlyphs[index])?.asset} /></svg> : selectedGlyphs[index] : <span className="text-white/15">·</span>}</div>)}
         </div>
-        <button type="button" title="Borrar último glifo" aria-label="Borrar último glifo" onClick={() => onChange(value.slice(0, -1))} disabled={!value} className="ml-0 flex h-9 w-9 shrink-0 items-center justify-center text-white/45 transition hover:text-white disabled:opacity-20 sm:ml-1 sm:h-10 sm:w-10"><ArrowLeftCircle size={19} strokeWidth={1.8} /></button>
+        <button type="button" title="Borrar último glifo" aria-label="Borrar último glifo" onClick={() => onChange(selectedGlyphs.slice(0, -1).join(""))} disabled={!value} className="ml-0 flex h-9 w-9 shrink-0 items-center justify-center text-white/45 transition hover:text-white disabled:opacity-20 sm:ml-1 sm:h-10 sm:w-10"><ArrowLeftCircle size={19} strokeWidth={1.8} /></button>
         <button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="hidden h-10 w-10 shrink-0 items-center justify-center text-red-500 transition hover:text-red-400 sm:flex"><Trash2 size={17} strokeWidth={2.2} /></button>
         <button type="button" aria-label="Mostrar más opciones" onClick={() => setMobileOptions((open) => !open)} className="flex h-9 w-9 shrink-0 items-center justify-center border border-white/10 text-sm text-white/45 transition hover:border-white/25 hover:text-white sm:hidden">{mobileOptions ? "×" : "..."}</button>
         <button type="button" onClick={randomize} disabled={discarded.size > 6} className="hidden h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20 sm:flex">Aleatorio</button>
@@ -72,13 +101,14 @@ function GlyphSelector({
       {onToggleDiscard && <div className="hidden sm:block sm:ml-auto">{discardButton}</div>}
       {mobileOptions && <div className="flex w-full gap-2 overflow-hidden sm:hidden"><button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="flex h-10 flex-1 items-center justify-center border border-white/10 text-red-500 transition hover:border-white/25 hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button><button type="button" onClick={randomize} disabled={discarded.size > 6} className="flex h-10 flex-1 items-center justify-center border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20">Aleatorio</button>{onToggleDiscard && discardButton}</div>}
     </div>
-    {discardMode && <div className="mb-2 border border-white/10 px-3 py-2 text-xs text-white/45">Seleccioná qué glifos querés descartar:</div>}<div className="mt-5 grid grid-cols-5 gap-2">
-      {Array.from({ length: 10 }, (_, index) => {
-        const digit = String(index);
-        const used = value.includes(digit);
-        const isDiscarded = discarded.has(digit);
-        return <button key={digit} type="button" disabled={!discardMode && (isDiscarded || used || value.length >= 4)} onClick={() => addDigit(digit)} className={"relative h-10 border font-mono text-sm transition " + (isDiscarded ? "border-red-500/25 text-red-500/70" : "border-white/10 bg-white/[0.02] hover:border-white/25") + (discardMode && !isDiscarded ? " border-emerald-500/30 hover:border-emerald-400/60" : "") + ((!discardMode && (isDiscarded || used || value.length >= 4)) ? " cursor-not-allowed opacity-20" : "")}>
-          <span className={"relative inline-flex " + (isDiscarded ? "text-red-400" : "")}>{digit}{isDiscarded && <X className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 opacity-40" size={22} strokeWidth={2.5} />}</span>
+    {discardMode && <div className="mb-2 border border-white/10 px-3 py-2 text-xs text-white/45">Seleccioná qué glifos querés descartar:</div>}
+    <div className="mt-5 grid grid-cols-5 gap-2">
+      {glyphs.map((glyph) => {
+        const glyphValue = glyph.value!;
+        const used = selectedGlyphs.includes(glyphValue);
+        const isDiscarded = discarded.has(glyphValue);
+        return <button key={glyph.id} type="button" disabled={!discardMode && (isDiscarded || used || selectedGlyphs.length >= 4)} onClick={() => addGlyph(glyphValue)} className={"relative h-10 border font-mono text-sm transition " + (isDiscarded ? "border-red-500/25 text-red-500/70" : "border-white/10 bg-white/[0.02] hover:border-white/25") + (discardMode && !isDiscarded ? " border-emerald-500/30 hover:border-emerald-400/60" : "") + ((!discardMode && (isDiscarded || used || selectedGlyphs.length >= 4)) ? " cursor-not-allowed opacity-20" : "")}>
+          {glyph.asset ? <svg className={"mx-auto h-8 w-8 " + (isDiscarded ? "opacity-70" : "")} viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span className={"relative inline-flex " + (isDiscarded ? "text-red-400" : "")}>{glyphValue}{isDiscarded && <X className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 opacity-40" size={22} strokeWidth={2.5} />}</span>}
         </button>;
       })}
     </div>
@@ -122,7 +152,7 @@ function ResultPanel({ result, label, action, onAction }: { result: Result; labe
 }
 
 export default function GamePage() {
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>(3);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(3);\n  const [glyphSetId, setGlyphSetId] = useState<GlyphSetId>(DEFAULT_GLYPH_SET_ID);
   const [phase, setPhase] = useState<Phase>("setup");
   const [guess, setGuess] = useState("");
   const [mySecret, setMySecret] = useState("");
@@ -147,7 +177,7 @@ export default function GamePage() {
         const data = await res.json().catch(() => null);
         if (!active || !data?.active) return;
         const state = data.state;
-        setDifficulty(state.difficulty);
+        setDifficulty(state.difficulty);\n        const restoredGlyphSet = getGlyphSetForCode(state.humanSecret);\n        if (restoredGlyphSet) setGlyphSetId(restoredGlyphSet.id);
         setStarter(state.starter);
         setMySecret(state.humanSecret);
         setHumanResults(state.humanGuesses ?? []);
@@ -210,7 +240,7 @@ export default function GamePage() {
   async function startGame() {
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, humanSecret: mySecret }) });
+      const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? "No se pudo iniciar la partida"); return; }
       setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setFinalActor(null); setDiscardMode(false);
@@ -259,7 +289,7 @@ export default function GamePage() {
         for (let index = 0; index < machineGuess.length; index++) {
           await new Promise((resolve) => window.setTimeout(resolve, 550));
           if (!active) return;
-          setMachineReveal(machineGuess.slice(0, index + 1));
+          setMachineReveal(Array.from(machineGuess).slice(0, index + 1).join(""));
         }
         await new Promise((resolve) => window.setTimeout(resolve, 450));
         if (!active) return;
@@ -278,19 +308,19 @@ export default function GamePage() {
   function continueAfterOpponentResult() { setLastResult(null); setPhase("player-turn"); }
   function beginFinalTurn() { setLastResult(null); setPhase(finalActor === "human" ? "player-turn" : "thinking"); }
 
-  if (phase === "setup" || phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">Volver</Link></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p>{phase === "setup" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Nueva partida</h1><p className="mt-3 text-sm leading-6 text-white/40">Primero elegí la configuración de la partida.</p><button type="button" onClick={() => setPhase("difficulty")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Continuar</button><TutorialModal variant="outline" triggerLabel="Ver Tutorial" className="mt-3 w-full" /></>}{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí tu código</h1><p className="mt-3 text-sm leading-6 text-white/40">El adversario intentará descubrir estos 4 glifos.</p><GlyphSelector value={mySecret} onChange={setMySecret}/>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading || mySecret.length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Iniciando..." : "Comenzar partida"}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el código secreto del adversario.</p><div className="mt-8 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => setPhase("code-select")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Seleccionar</button></>}</section></div></main>;
+  if (phase === "setup" || phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">Volver</Link></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">jugador vs máquina</p>{phase === "setup" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Nueva partida</h1><p className="mt-3 text-sm leading-6 text-white/40">Primero elegí la configuración de la partida.</p><GlyphSetPicker value={glyphSetId} onChange={(value) => { setGlyphSetId(value); setMySecret(""); }} /><button type="button" onClick={() => setPhase("difficulty")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Continuar</button><TutorialModal variant="outline" triggerLabel="Ver Tutorial" className="mt-3 w-full" /></>}{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí tu código</h1><p className="mt-3 text-sm leading-6 text-white/40">El adversario intentará descubrir estos 4 glifos.</p><GlyphSelector value={mySecret} onChange={setMySecret} glyphSetId={glyphSetId}/>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading || Array.from(mySecret).length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Iniciando..." : "Comenzar partida"}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">Elegí la dificultad</h1><p className="mt-3 text-sm leading-6 text-white/40">Una carrera por descubrir el código secreto del adversario.</p><div className="mt-8 grid gap-2">{DIFFICULTIES.map((option) => { const selected = difficulty === option.level; return <button key={option.level} type="button" onClick={() => setDifficulty(option.level)} className={"flex items-center justify-between border px-4 py-4 text-left transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}><span><span className="block text-sm font-medium">{option.level}. {option.name}</span><span className="mt-1 block text-xs leading-5 text-white/40">{option.description}</span></span><span className={"ml-4 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span></button>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => setPhase("code-select")} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b]">Seleccionar</button></>}</section></div></main>;
 
   const inMatch = !["coin-toss", "coin-result"].includes(phase);
   return <main className="min-h-screen overflow-x-clip bg-[#0b0b0b] px-4 text-[#f5f5f5] sm:px-6"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><button type="button" onClick={requestClose} className="text-sm font-medium tracking-tight">gemlocks</button><div className="flex items-center gap-3 text-xs"><span className="text-white/40">Nivel {difficulty}</span><span className="text-white/20">|</span><button type="button" onClick={requestClose} className="text-red-400/70 transition hover:text-red-400">Abandonar</button></div></header><section key={phase} className="phase-enter flex min-w-0 flex-1 flex-col py-7 sm:py-10">
     {!inMatch && phase === "coin-toss" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo</p><h1 className="mt-4 text-3xl font-medium">¿Quién empieza?</h1><Coin /></div>}
     {!inMatch && phase === "coin-result" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">sorteo terminado</p><h1 className="mt-4 text-3xl font-medium">{starter === "human" ? "Empezás vos." : "Empieza la máquina."}</h1><p className="mt-4 text-sm text-white/40">{starter === "human" ? "Tenés el primer ataque." : "La máquina tiene el primer ataque."}</p><button type="button" onClick={beginMatch} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Comenzar</button></div>}
     {inMatch && <><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-white/35">{starter === "human" ? "vos empezaste" : "la máquina empezó"}</p><h1 className="mt-3 text-3xl font-medium tracking-tight">{phaseTitle[phase as Exclude<Phase, "setup">]}</h1></div><div className="text-right text-xs text-white/30"><div>Tu código:</div><div className="font-mono tracking-widest text-white/55">{mySecret}</div><div className="mt-2">{humanResults.length} ataques tuyos</div><div>{machineResults.length} de la máquina</div></div></div>
-      {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? "Este es tu turno final. Si descubrís el código, empatás la partida." : "Elegí 4 glifos distintos para atacar."}</p><GlyphSelector value={guess} onChange={setGuess} discardMode={discardMode} discarded={discarded} onToggleDiscard={() => setDiscardMode((value) => !value)} onDiscard={(digit) => setDiscarded((current) => { const next = new Set(current); if (next.has(digit)) next.delete(digit); else next.add(digit); return next; })} /><button type="button" onClick={() => submitGuess({ preventDefault() {} } as FormEvent)} disabled={loading || guess.length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Atacando..." : "Atacar"}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History humanResults={humanResults} machineResults={machineResults}/></>}
+      {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? "Este es tu turno final. Si descubrís el código, empatás la partida." : "Elegí 4 glifos distintos para atacar."}</p><GlyphSelector value={guess} onChange={setGuess} glyphSetId={glyphSetId} discardMode={discardMode} discarded={discarded} onToggleDiscard={() => setDiscardMode((value) => !value)} onDiscard={(digit) => setDiscarded((current) => { const next = new Set(current); if (next.has(digit)) next.delete(digit); else next.add(digit); return next; })} /><button type="button" onClick={() => submitGuess({ preventDefault() {} } as FormEvent)} disabled={loading || Array.from(guess).length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? "Atacando..." : "Atacar"}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History humanResults={humanResults} machineResults={machineResults}/></>}
       {phase === "player-result" && lastResult && <ResultPanel result={lastResult} label="Tu ataque" action="Continuar" onAction={continueAfterPlayerResult}/>}
       {phase === "thinking" && <div className="flex flex-1 flex-col items-center justify-center text-center"><ThinkingGlyphs value={machineReveal}/><div className="mt-7 flex gap-2"><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/></div><p className="mt-5 text-sm text-white/40">Analizando posibilidades...</p></div>}
       {phase === "opponent-result" && lastResult && <ResultPanel result={lastResult} label="Ataque de la máquina" action="Tu turno" onAction={continueAfterOpponentResult}/>}
       {phase === "final-turn" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">último turno</div><h2 className="mt-5 text-3xl font-medium">{finalActor === "human" ? "Tenés una oportunidad más." : "La máquina tiene una oportunidad más."}</h2><p className="mt-4 max-w-md text-sm leading-6 text-white/40">{starter === "human" ? "Fuiste el primero en descubrir el código. Como empezaste primero, la máquina conserva su turno final para buscar el empate." : "La máquina fue la primera en descubrir el código. Como empezó primero, conservás un turno final para buscar el empate."}</p><button type="button" onClick={beginFinalTurn} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{finalActor === "human" ? "Jugar mi turno final" : "Continuar"}</button></div>}
-      {(phase === "won" || phase === "lost" || phase === "draw") && <div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? "Ganaste." : phase === "lost" ? "La máquina ganó." : "Empate."}</h2><div className="mt-5 flex items-center justify-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">Código del adversario</span><div className="flex gap-1.5">{machineSecret.split("").map((glyph, index) => <span key={index} className="flex h-10 w-10 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-lg text-white">{glyph}</span>)}</div></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">Ambos descubrieron el código en su turno adicional.</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("setup"); setError(""); setMySecret(""); setGuess(""); setDiscarded(new Set()); setDiscardMode(false); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button><Link href="/" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">Inicio</Link></div></div>}
+      {(phase === "won" || phase === "lost" || phase === "draw") && <div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? "Ganaste." : phase === "lost" ? "La máquina ganó." : "Empate."}</h2><div className="mt-5 flex items-center justify-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">Código del adversario</span><div className="flex gap-1.5">{Array.from(machineSecret).map((glyph, index) => <span key={index} className="flex h-10 w-10 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-lg text-white">{glyph}</span>)}</div></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">Ambos descubrieron el código en su turno adicional.</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("setup"); setError(""); setMySecret(""); setGuess(""); setGlyphSetId(DEFAULT_GLYPH_SET_ID); setDiscarded(new Set()); setDiscardMode(false); setGlyphSetId(DEFAULT_GLYPH_SET_ID); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button><Link href="/" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">Inicio</Link></div></div>}
     </>}
   </section></div>
     {confirmClose && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-sm"><div className="w-full max-w-md border border-white/10 bg-[#111] p-6 shadow-2xl"><h2 className="text-xl font-medium">¿Está seguro/a de que desea cerrar la partida?</h2><p className="mt-3 text-sm leading-6 text-white/45">Esto contaría como derrota.</p><div className="mt-7 flex gap-3"><button type="button" onClick={() => setConfirmClose(false)} className="flex-1 border border-white/10 px-4 py-3 text-sm text-white/60 hover:border-white/25 hover:text-white">Cancelar</button><button type="button" onClick={confirmAbandon} className="flex-1 bg-red-500 px-4 py-3 text-sm font-medium text-white">Cerrar partida</button></div></div></div>}
