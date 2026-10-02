@@ -17,13 +17,25 @@ const phaseTitle: Record<Exclude<Phase, "setup">, string> = {
   lost: "La máquina ganó", draw: "Empate",
 };
 
+function RuneGlyph({ value, className = "h-10 w-10" }: { value: string; className?: string }) {
+  return <span className={"relative flex items-center justify-center overflow-hidden rounded-[22%] border-2 border-[#30343a] bg-[#555b64] shadow-[inset_0_0_10px_rgba(0,0,0,0.35)] " + className}>
+    <span className="relative -mt-0.5 text-[0.72em] font-semibold leading-none text-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.95)]">{value}</span>
+  </span>;
+}
+
+function RenderGlyph({ glyph, className = "h-10 w-10" }: { glyph: { value?: string; asset?: string }; className?: string }) {
+  if (!glyph.value) return null;
+  if (glyph.asset) return <RuneGlyph value={glyph.value} className={className} />;
+  return <span className={"inline-flex items-center justify-center " + className}>{glyph.value}</span>;
+}
+
 function Glyphs({ value, glyphSetId = DEFAULT_GLYPH_SET_ID }: { value: string; glyphSetId?: GlyphSetId }) {
   const glyphSet = getGlyphSet(glyphSetId);
   const glyphs = Array.from(value);
   return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => {
     const glyph = glyphSet.glyphs.find((item) => item.value === glyphs[index]);
     return <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">
-      {glyphs[index] ? glyph?.asset ? <svg className="h-11 w-11" viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span className="glyph-fill">{glyphs[index]}</span> : <span className="text-white/15">·</span>}
+      {glyph ? <RenderGlyph glyph={glyph} className="h-11 w-11 text-2xl" /> : <span className="text-white/15">·</span>}
     </div>;
   })}</div>;
 }
