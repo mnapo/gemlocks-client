@@ -28,8 +28,20 @@ export async function POST(req: NextRequest) {
   const gameId = randomUUID();
   const state = { gameId, userId: user.sub, humanSecret, machineSecret, difficulty, starter, currentPlayer: starter, humanGuesses: [], machineGuesses: [], firstWinner: null, finalTurnUsed: false };
 
-  const { error } = await client.from("game_sessions").insert({ game_id: gameId, user_id: user.sub, state });
-  if (error) throw error;
+  const { error } = await client.from("game_sessions").insert({
+    game_id: gameId,
+    user_id: user.sub,
+    human_secret: humanSecret,
+    machine_secret: machineSecret,
+    difficulty,
+    starter,
+    human_guesses: [],
+    machine_guesses: [],
+    first_winner: null,
+    final_turn_used: false,
+    status: "active",
+  });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const res = NextResponse.json({ ok: true, gameId, starter, humanSecret });
   setGameCookie(res, await signGameId(gameId));
