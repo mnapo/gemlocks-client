@@ -83,7 +83,8 @@ export async function touchGame(gameId: string, userId: string, state?: GameStat
     update.human_guesses = state.humanGuesses;
     update.machine_guesses = state.machineGuesses;
     update.first_winner = state.firstWinner;
-    update.final_turn_used = state.finalTurnUsed;\n    update.current_player = state.currentPlayer;
+    update.final_turn_used = state.finalTurnUsed;
+    update.current_player = state.currentPlayer;
   }
   const { error } = await getAdminClient().from("game_sessions").update(update).eq("game_id", gameId).eq("user_id", userId).eq("status", "active");
   if (error) throw error;
