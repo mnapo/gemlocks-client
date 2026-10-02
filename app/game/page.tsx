@@ -47,7 +47,7 @@ function GlyphSetPicker({ value, onChange }: { value: GlyphSetId; onChange: (val
       const preview = set.glyphs.slice(0, 4);
       return <button key={set.id} type="button" onClick={() => onChange(set.id)} className={"min-w-0 border px-2 py-4 text-center transition " + (selected ? "border-white/40 bg-white/[0.07]" : "border-white/10 bg-white/[0.02] hover:border-white/20")}>
         <div className="flex h-10 items-center justify-center gap-1 overflow-hidden">
-          {preview.map((glyph) => glyph.asset ? <svg key={glyph.id} className="h-8 w-8 shrink-0" viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span key={glyph.id} className="text-xl">{glyph.value}</span>)}
+          {preview.map((glyph) => <RenderGlyph key={glyph.id} glyph={glyph} className="h-8 w-8 shrink-0 text-xl" />)}
         </div>
         <span className="mt-3 block truncate text-xs text-white/60">{set.name}</span>
         <span className={"mx-auto mt-2 flex h-4 w-4 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2 w-2 rounded-full bg-white" />}</span>
@@ -103,7 +103,10 @@ function GlyphSelector({
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
         <div className="flex shrink-0 gap-2 sm:gap-3">
-          {Array.from({ length: 4 }, (_, index) => <div key={index} className="flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl sm:h-14 sm:w-14">{selectedGlyphs[index] ? glyphs.find((glyph) => glyph.value === selectedGlyphs[index])?.asset ? <svg className="h-10 w-10" viewBox="0 0 100 100"><use href={glyphs.find((glyph) => glyph.value === selectedGlyphs[index])?.asset} /></svg> : selectedGlyphs[index] : <span className="text-white/15">·</span>}</div>)}
+          {Array.from({ length: 4 }, (_, index) => {
+            const selectedGlyph = glyphs.find((glyph) => glyph.value === selectedGlyphs[index]);
+            return <div key={index} className="flex h-12 w-12 shrink-0 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl sm:h-14 sm:w-14">{selectedGlyph ? <RenderGlyph glyph={selectedGlyph} className="h-10 w-10 text-xl" /> : <span className="text-white/15">·</span>}</div>;
+          })}
         </div>
         <button type="button" title="Borrar último glifo" aria-label="Borrar último glifo" onClick={() => onChange(selectedGlyphs.slice(0, -1).join(""))} disabled={!value} className="ml-0 flex h-9 w-9 shrink-0 items-center justify-center text-white/45 transition hover:text-white disabled:opacity-20 sm:ml-1 sm:h-10 sm:w-10"><ArrowLeftCircle size={19} strokeWidth={1.8} /></button>
         <button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="hidden h-10 w-10 shrink-0 items-center justify-center text-red-500 transition hover:text-red-400 sm:flex"><Trash2 size={17} strokeWidth={2.2} /></button>
@@ -120,7 +123,7 @@ function GlyphSelector({
         const used = selectedGlyphs.includes(glyphValue);
         const isDiscarded = discarded.has(glyphValue);
         return <button key={glyph.id} type="button" disabled={!discardMode && (isDiscarded || used || selectedGlyphs.length >= 4)} onClick={() => addGlyph(glyphValue)} className={"relative h-10 border font-mono text-sm transition " + (isDiscarded ? "border-red-500/25 text-red-500/70" : "border-white/10 bg-white/[0.02] hover:border-white/25") + (discardMode && !isDiscarded ? " border-emerald-500/30 hover:border-emerald-400/60" : "") + ((!discardMode && (isDiscarded || used || selectedGlyphs.length >= 4)) ? " cursor-not-allowed opacity-20" : "")}>
-          {glyph.asset ? <svg className={"mx-auto h-8 w-8 " + (isDiscarded ? "opacity-70" : "")} viewBox="0 0 100 100"><use href={glyph.asset} /></svg> : <span className={"relative inline-flex " + (isDiscarded ? "text-red-400" : "")}>{glyphValue}{isDiscarded && <X className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 opacity-40" size={22} strokeWidth={2.5} />}</span>}
+          <span className={"relative inline-flex " + (isDiscarded ? "text-red-400" : "")}><RenderGlyph glyph={glyph} className={"h-8 w-8 " + (isDiscarded ? "opacity-70" : "")} />{isDiscarded && <X className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 opacity-40" size={22} strokeWidth={2.5} />}</span>
         </button>;
       })}
     </div>
