@@ -23,7 +23,7 @@ export default async function Home() {
           <p className="text-xs uppercase tracking-[0.3em] text-white/35">Bienvenido/a</p>
           <h1 className="mt-4 text-4xl font-medium tracking-tight">{user.name || user.email}</h1>
           <div className="mt-4 flex items-center justify-center gap-4" aria-label="Gemlocks"><span className="home-gem" /><span className="home-gem" /><span className="home-gem" /></div>
-          <HomePlayButton /><TutorialModal className="mt-4" /><Link href="/ranking" className="mt-4 text-xs text-white/40 transition hover:text-white/75">Ranking</Link>
+          <HomePlayButton /><TutorialModal className="mt-4" /><div className="mt-4 flex items-center gap-4"><Link href="/ranking" className="text-xs text-white/40 transition hover:text-white/75">Ranking</Link><Link href="/store" className="text-xs text-white/40 transition hover:text-white/75">Tienda</Link></div>
         </section>
       </div>
     </main>
