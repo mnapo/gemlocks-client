@@ -49,7 +49,7 @@ export async function loadGame(req: NextRequest) {
   if (!user) return null;
   const { data, error } = await getAdminClient()
     .from("game_sessions")
-    .select("game_id,user_id,human_secret,machine_secret,difficulty,starter,human_guesses,machine_guesses,first_winner,final_turn_used,status,last_seen_at")
+    .select("game_id,user_id,human_secret,machine_secret,difficulty,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
     .eq("game_id", gameId)
     .eq("user_id", user.sub)
     .maybeSingle();
@@ -68,13 +68,7 @@ export async function loadGame(req: NextRequest) {
       machineSecret: data.machine_secret,
       difficulty: data.difficulty,
       starter: data.starter as "human" | "machine",
-      currentPlayer: data.final_turn_used
-        ? (data.starter as "human" | "machine")
-        : data.first_winner
-          ? (data.first_winner === "human" ? "machine" : "human")
-          : ((data.human_guesses?.length ?? 0) <= (data.machine_guesses?.length ?? 0)
-              ? data.starter as "human" | "machine"
-              : (data.human_guesses?.length ?? 0) < (data.machine_guesses?.length ?? 0) ? "human" : "machine"),
+      currentPlayer: data.current_player as "human" | "machine",
       humanGuesses: data.human_guesses as GameState["humanGuesses"],
       machineGuesses: data.machine_guesses as GameState["machineGuesses"],
       firstWinner: data.first_winner as "human" | "machine" | null,
@@ -89,7 +83,7 @@ export async function touchGame(gameId: string, userId: string, state?: GameStat
     update.human_guesses = state.humanGuesses;
     update.machine_guesses = state.machineGuesses;
     update.first_winner = state.firstWinner;
-    update.final_turn_used = state.finalTurnUsed;
+    update.final_turn_used = state.finalTurnUsed;\n    update.current_player = state.currentPlayer;
   }
   const { error } = await getAdminClient().from("game_sessions").update(update).eq("game_id", gameId).eq("user_id", userId).eq("status", "active");
   if (error) throw error;
