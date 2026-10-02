@@ -80,7 +80,7 @@ function GlyphSelector({
   }
 
   function randomize() {
-    const available = glyphs.map((item) => item.value).filter((glyph): glyph is string => Boolean(glyph) && !discarded.has(glyph));
+    const available = glyphs.map((item) => item.value).filter((glyph): glyph is string => typeof glyph === "string" && !discarded.has(glyph));
     if (available.length < 4) return;
     onChange(available.sort(() => Math.random() - 0.5).slice(0, 4).join(""));
   }
@@ -158,6 +158,7 @@ export default function GamePage() {
   const [guess, setGuess] = useState("");
   const [mySecret, setMySecret] = useState("");
   const [machineReveal, setMachineReveal] = useState("");
+  const [machineSecret, setMachineSecret] = useState("");
   const [humanResults, setHumanResults] = useState<Result[]>([]);
   const [machineResults, setMachineResults] = useState<Result[]>([]);
   const [lastResult, setLastResult] = useState<Result | null>(null);
@@ -246,7 +247,7 @@ export default function GamePage() {
       const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? "No se pudo iniciar la partida"); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setFinalActor(null); setDiscardMode(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setMachineSecret(data.machineSecret ?? ""); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
@@ -282,7 +283,7 @@ export default function GamePage() {
   useEffect(() => {
     if (phase !== "thinking") return;
     let active = true;
-    setMachineReveal("");
+    setMachineReveal(""); setMachineSecret("");
     const timer = window.setTimeout(async () => {
       try {
         const { res, data } = await attack("machine");
