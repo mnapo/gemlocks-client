@@ -92,12 +92,13 @@ export async function touchGame(gameId: string, userId: string, state?: GameStat
 }
 
 export async function finishGame(gameId: string, userId: string, status: "victory" | "defeat" | "draw") {
-  const { error } = await getAdminClient().rpc("finish_game", {
+  const { data, error } = await getAdminClient().rpc("finish_game", {
     p_user_id: userId,
     p_game_id: gameId,
     p_result: status,
   });
   if (error) throw error;
+  return data === true;
 }
 
 export function setGameCookie(res: NextResponse, token: string) {
