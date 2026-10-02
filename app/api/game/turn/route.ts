@@ -49,8 +49,14 @@ export async function POST(req: NextRequest) {
   } else if (status === "final-turn") {
     await touchGame(state.gameId, state.userId, nextState);
   } else {
-    await finishGame(state.gameId, state.userId, status === "won" ? "victory" : status === "lost" ? "defeat" : "draw");
-    await touchGame(state.gameId, state.userId, nextState);
+    const finished = await finishGame(
+      state.gameId,
+      state.userId,
+      status === "won" ? "victory" : status === "lost" ? "defeat" : "draw",
+    );
+    if (!finished) {
+      return NextResponse.json({ error: "La partida no pudo finalizarse." }, { status: 500 });
+    }
   }
 
   const res = NextResponse.json({ status, actor, result: result(attack), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}) });
