@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0 0 100 100">
+  <defs>
+    <filter id="rune-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <symbol id="rune-fehu" viewBox="0 0 100 100">
+    <path d="M17 13 L84 17 L91 82 L13 88 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M38 68 V28 M38 31 L66 39 M38 47 L64 55" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-uruz" viewBox="0 0 100 100">
+    <path d="M15 18 Q50 7 87 20 L82 84 Q50 93 18 83 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M31 28 V71 M31 29 H61 Q72 29 72 40 Q72 51 61 51 H31 M72 51 L72 72" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-thurisaz" viewBox="0 0 100 100">
+    <path d="M20 12 L82 19 L89 84 L15 89 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M34 72 V27 M34 31 L67 31 L48 50 L69 69" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-ansuz" viewBox="0 0 100 100">
+    <path d="M13 21 L78 11 L89 79 L21 90 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M35 73 V27 M35 31 L69 47 L35 57 M35 31 L69 31" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-raidho" viewBox="0 0 100 100">
+    <path d="M18 15 Q52 8 84 19 L88 80 Q51 92 14 81 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M33 73 V27 M33 29 H60 Q71 29 71 40 Q71 52 60 52 H33 M60 52 L72 72" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-kenaz" viewBox="0 0 100 100">
+    <path d="M14 17 L83 13 L89 83 L18 88 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M67 28 L37 50 L67 72 M37 50 H73" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-gebo" viewBox="0 0 100 100">
+    <path d="M20 12 L85 20 L88 82 L14 88 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M28 28 L72 72 M72 28 L28 72" fill="none" stroke="#67e8f9" stroke-width="8" stroke-linecap="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-wunjo" viewBox="0 0 100 100">
+    <path d="M17 18 Q50 7 85 18 L81 84 Q50 92 16 82 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M33 28 V73 M33 30 H60 Q72 30 72 41 Q72 53 60 53 H33" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-hagalaz" viewBox="0 0 100 100">
+    <path d="M13 17 L82 13 L89 81 L18 88 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M28 27 L72 72 M72 27 L28 72 M50 28 V72" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" filter="url(#rune-glow)"/>
+  </symbol>
+  <symbol id="rune-nauthiz" viewBox="0 0 100 100">
+    <path d="M18 13 L86 20 L82 87 L14 80 Z" fill="#555b64" stroke="#30343a" stroke-width="5"/>
+    <path d="M34 27 V73 M34 53 L68 28 M34 53 L68 73" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#rune-glow)"/>
+  </symbol>
+</svg>
