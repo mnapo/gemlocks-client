@@ -42,16 +42,22 @@ export async function getGameId(req: NextRequest) {
 }
 
 export async function loadGame(req: NextRequest) {
-  const gameId = await getGameId(req);
-  if (!gameId) return null;
+  const requestedGameId = await getGameId(req);
   const user = await getSessionUser(req);
   if (!user) return null;
-  const { data, error } = await getAdminClient()
+
+  let query = getAdminClient()
     .from("game_sessions")
     .select("game_id,user_id,human_secret,machine_secret,difficulty,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
-    .eq("game_id", gameId)
-    .eq("user_id", user.sub)
-    .maybeSingle();
+    .eq("user_id", user.sub);
+
+  if (requestedGameId) {
+    query = query.eq("game_id", requestedGameId);
+  } else {
+    query = query.eq("status", "active").order("created_at", { ascending: false }).limit(1);
+  }
+
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   if (!data) return null;
   return {
