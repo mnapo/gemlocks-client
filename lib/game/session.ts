@@ -92,14 +92,12 @@ export async function touchGame(gameId: string, userId: string, state?: GameStat
 }
 
 export async function finishGame(gameId: string, userId: string, status: "victory" | "defeat" | "draw") {
-  const client = getAdminClient();
-  const { data, error } = await client.from("game_sessions").select("status").eq("game_id", gameId).eq("user_id", userId).maybeSingle();
+  const { error } = await getAdminClient().rpc("finish_game", {
+    p_user_id: userId,
+    p_game_id: gameId,
+    p_result: status,
+  });
   if (error) throw error;
-  if (!data || data.status !== "active") return;
-  const { error: updateError } = await client.from("game_sessions").update({ status, finished_at: new Date().toISOString(), last_seen_at: new Date().toISOString() }).eq("game_id", gameId).eq("user_id", userId).eq("status", "active");
-  if (updateError) throw updateError;
-  const { error: resultError } = await client.rpc("record_game_result", { p_user_id: userId, p_game_id: gameId, p_result: status });
-  if (resultError) throw resultError;
 }
 
 export function setGameCookie(res: NextResponse, token: string) {
