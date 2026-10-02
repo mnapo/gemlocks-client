@@ -5,6 +5,7 @@ export type StoreItem = {
   name: string;
   price: number;
   preview?: string;
+  image?: string;
 };
 
 export const STORE_SECTIONS: Record<StoreSectionId, { title: string; subtitle: string; items: StoreItem[] }> = {
@@ -30,17 +31,17 @@ export const STORE_SECTIONS: Record<StoreSectionId, { title: string; subtitle: s
     title: "Avatares",
     subtitle: "Un ícono que te represente en tu cuenta",
     items: [
-      { id: "avatar-pelota", name: "Pelota", price: 15 },
-      { id: "avatar-flores", name: "Flores", price: 15 },
-      { id: "avatar-guitarra", name: "Guitarra", price: 15 },
-      { id: "avatar-paisaje", name: "Paisaje", price: 15 },
-      { id: "avatar-robot", name: "Robot", price: 15 },
-      { id: "avatar-elfo", name: "Elfo", price: 15 },
-      { id: "avatar-elfa", name: "Elfa", price: 15 },
-      { id: "avatar-doctor", name: "Doctor", price: 15 },
-      { id: "avatar-doctora", name: "Doctora", price: 15 },
-      { id: "avatar-mago", name: "Mago", price: 15 },
-      { id: "avatar-maga", name: "Maga", price: 15 },
+      { id: "avatar-pelota", name: "Pelota", price: 15, image: "/store/avatars/pelota.svg" },
+      { id: "avatar-flores", name: "Flores", price: 15, image: "/store/avatars/flores.svg" },
+      { id: "avatar-guitarra", name: "Guitarra", price: 15, image: "/store/avatars/guitarra.svg" },
+      { id: "avatar-paisaje", name: "Paisaje", price: 15, image: "/store/avatars/paisaje.svg" },
+      { id: "avatar-robot", name: "Robot", price: 15, image: "/store/avatars/robot.svg" },
+      { id: "avatar-elfo", name: "Elfo", price: 15, image: "/store/avatars/elfo.svg" },
+      { id: "avatar-elfa", name: "Elfa", price: 15, image: "/store/avatars/elfa.svg" },
+      { id: "avatar-doctor", name: "Doctor", price: 15, image: "/store/avatars/doctor.svg" },
+      { id: "avatar-doctora", name: "Doctora", price: 15, image: "/store/avatars/doctora.svg" },
+      { id: "avatar-mago", name: "Mago", price: 15, image: "/store/avatars/mago.svg" },
+      { id: "avatar-maga", name: "Maga", price: 15, image: "/store/avatars/maga.svg" },
     ],
   },
 };
