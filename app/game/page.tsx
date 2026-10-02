@@ -152,7 +152,8 @@ function ResultPanel({ result, label, action, onAction, glyphSetId }: { result: 
 }
 
 export default function GamePage() {
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>(3);\n  const [glyphSetId, setGlyphSetId] = useState<GlyphSetId>(DEFAULT_GLYPH_SET_ID);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(3);
+  const [glyphSetId, setGlyphSetId] = useState<GlyphSetId>(DEFAULT_GLYPH_SET_ID);
   const [phase, setPhase] = useState<Phase>("setup");
   const [guess, setGuess] = useState("");
   const [mySecret, setMySecret] = useState("");
@@ -177,7 +178,9 @@ export default function GamePage() {
         const data = await res.json().catch(() => null);
         if (!active || !data?.active) return;
         const state = data.state;
-        setDifficulty(state.difficulty);\n        const restoredGlyphSet = getGlyphSetForCode(state.humanSecret);\n        if (restoredGlyphSet) setGlyphSetId(restoredGlyphSet.id);
+        setDifficulty(state.difficulty);
+        const restoredGlyphSet = getGlyphSetForCode(state.humanSecret);
+        if (restoredGlyphSet) setGlyphSetId(restoredGlyphSet.id);
         setStarter(state.starter);
         setMySecret(state.humanSecret);
         setHumanResults(state.humanGuesses ?? []);
