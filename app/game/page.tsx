@@ -55,6 +55,8 @@ function GlyphSelector({
     onChange(available.sort(() => Math.random() - 0.5).slice(0, 4).join(""));
   }
 
+  const [mobileOptions, setMobileOptions] = useState(false);
+
   const discardButton = onToggleDiscard && <button type="button" onClick={onToggleDiscard} className={"flex h-10 flex-1 items-center justify-center gap-1.5 border px-3 text-xs transition sm:flex-none sm:px-4 " + (discardMode ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-white/50 hover:border-white/25 hover:text-white")}>{discardMode && <Check size={14} strokeWidth={2} />}{discardMode ? "Listo" : "Descartar"}</button>;
   return <div className="mt-5 min-w-0">
     <div className="flex flex-wrap items-center gap-2">
@@ -136,7 +138,6 @@ export default function GamePage() {
   const [discarded, setDiscarded] = useState<Set<string>>(new Set());
   const [confirmClose, setConfirmClose] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [mobileOptions, setMobileOptions] = useState(false);
 
   useEffect(() => {
     let active = true;
