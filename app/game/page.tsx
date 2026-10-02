@@ -247,7 +247,7 @@ export default function GamePage() {
       const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? "No se pudo iniciar la partida"); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setMachineSecret(data.machineSecret ?? ""); setFinalActor(null); setDiscardMode(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
@@ -266,13 +266,13 @@ export default function GamePage() {
 
   async function submitGuess(event: FormEvent) {
     event.preventDefault();
-    if (guess.length !== 4 || loading) return;
+    if (Array.from(guess).length !== 4 || loading) return;
     setLoading(true); setError("");
     try {
       const { res, data } = await attack("human", guess);
       if (!res.ok) { setError(data?.error ?? "No se pudo procesar el ataque"); return; }
       const result = data.result as Result;
-      setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false);
+      setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
       if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
       else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
       else setPhase("player-result");
@@ -298,7 +298,7 @@ export default function GamePage() {
         await new Promise((resolve) => window.setTimeout(resolve, 450));
         if (!active) return;
         const result = data.result as Result;
-        setMachineResults((current) => [...current, result]); setLastResult(result);
+        setMachineResults((current) => [...current, result]); setLastResult(result); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
         if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
         else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
         else setPhase("opponent-result");
