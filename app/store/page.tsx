@@ -51,7 +51,7 @@ const sections = [
     ],
   },
   { title: "Modalidades", subtitle: "Creá partidas online con modos de juego diferentes al básico", icon: Swords, locked: true },
-  { title: "Packs", subtitle: "Ahorrá monedas adquiriendo ítems en cantidad", icon: Package, locked: true },
+  { title: "Paquetes", subtitle: "Adquirí monedas para acelerar tu progreso", icon: Package, locked: false },
 ];
 
 export default async function StorePage() {
@@ -59,8 +59,9 @@ export default async function StorePage() {
   const user = token ? await verifySessionToken(token) : null;
   if (!user) redirect("/login");
 
-  const { data: userData } = await getAdminClient().from("app_users").select("gems").eq("id", user.sub).single();
+  const { data: userData } = await getAdminClient().from("app_users").select("gems,coins").eq("id", user.sub).single();
   const gems = userData?.gems ?? 0;
+  const coins = userData?.coins ?? 0;
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
@@ -76,7 +77,7 @@ export default async function StorePage() {
             <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
               <div className="flex items-center justify-center gap-3">
                 <Coins className="text-yellow-400/80" size={25} strokeWidth={1.7} />
-                <div><div className="text-2xl font-medium">0</div><div className="text-xs text-white/35">Monedas</div></div>
+                <div><div className="text-2xl font-medium">{coins.toLocaleString("es-AR")}</div><div className="text-xs text-white/35">Monedas</div></div>
               </div>
               <div className="flex items-center justify-center gap-3">
                 <Gem className="text-cyan-300/80" size={25} strokeWidth={1.7} />
