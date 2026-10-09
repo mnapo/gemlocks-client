@@ -18,7 +18,7 @@ export default async function Home() {
 
   const client = getAdminClient();
   const [{ data: profile }, { data: ownedRows }] = await Promise.all([
-    client.from("app_users").select("active_glyph_set,active_avatar,active_theme").eq("id", user.sub).single(),
+    client.from("app_users").select("active_glyph_set,active_avatar,active_theme,active_chest").eq("id", user.sub).single(),
     client.from("user_store_items").select("item_id").eq("user_id", user.sub),
   ]);
   const ownedIds = (ownedRows ?? []).map((row) => row.item_id);
@@ -42,6 +42,7 @@ export default async function Home() {
               activeGlyphSet={(profile?.active_glyph_set ?? DEFAULT_GLYPH_SET_ID) as GlyphSetId}
               activeAvatar={profile?.active_avatar ?? ""}
               activeTheme={profile?.active_theme ?? "dark"}
+              activeChest={profile?.active_chest ?? ""}
             />
             <LogoutButton />
           </div>
