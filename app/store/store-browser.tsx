@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, Coins, Gem, Package, Palette, Sparkles, Swords, UserRound, Zap } from "lucide-react";
 import { STORE_SECTIONS, type StoreSectionId } from "@/lib/store/items";
 import StoreItems from "@/app/store/[section]/store-items";
@@ -14,14 +15,21 @@ const sections = [
   { id: "temas", title: "Temas", subtitle: "Modificá la estética de todo el juego", icon: Palette },
   { id: "avatares", title: "Avatares", subtitle: "Un ícono que te represente en tu cuenta", icon: UserRound },
   { id: "modalidades", title: "Modalidades", subtitle: "Creá partidas online con modos de juego diferentes al básico", icon: Swords, locked: true },
-  { id: "paquetes", title: "Paquetes", subtitle: "Adquirí monedas para acelerar tu progreso", icon: Coins },
+  { id: "paquetes", title: "Paquetes", subtitle: "Colecciones temáticas con varios artículos", icon: Package },
 ] as const;
 
-const packs = [
+const coinPacks = [
   { id: "starter", coins: 100, price: "US$ 0,99", description: "Para una pequeña ayuda" },
   { id: "small", coins: 500, price: "US$ 3,99", description: "Un impulso inicial" },
   { id: "medium", coins: 1000, price: "US$ 6,99", description: "Más monedas, mejor valor", popular: true },
   { id: "large", coins: 5000, price: "US$ 24,99", description: "Para avanzar mucho más" },
+];
+
+const itemPacks = [
+  { id: "elfico", name: "Élfico", subtitle: "La magia del bosque antiguo", contents: ["Set de glifos: Runas", "Avatares: Elfo y Elfa", "Tema: Forest"], accent: "border-emerald-300/25 bg-emerald-300/[0.04]" },
+  { id: "pirata", name: "Pirata", subtitle: "Tesoros para quienes surcan los mares", contents: ["Cofre: Pirata", "Avatar: Capitán pirata", "Tema: Aguas oscuras"], accent: "border-amber-300/25 bg-amber-300/[0.04]" },
+  { id: "cosmico", name: "Cósmico", subtitle: "Un estilo venido de otra galaxia", contents: ["Set de glifos: Constelaciones", "Avatar: Explorador espacial", "Tema: Nebulosa"], accent: "border-violet-300/25 bg-violet-300/[0.04]" },
+  { id: "halloween", name: "Halloween", subtitle: "Edición especial de temporada", contents: ["Set de glifos: Misterio", "Avatares: Bruja y Espectro", "Tema: Noche embrujada"], accent: "border-orange-300/25 bg-orange-300/[0.04]" },
 ];
 
 export default function StoreBrowser({ coins, gems, owned }: Props) {
@@ -47,7 +55,7 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
   }
 
   const displayedSection = activeSection ?? exitingSection;
-  const section = displayedSection && displayedSection !== "paquetes" ? STORE_SECTIONS[displayedSection as StoreSectionId] : null;
+  const section = displayedSection && !["paquetes", "coins"].includes(displayedSection) ? STORE_SECTIONS[displayedSection as StoreSectionId] : null;
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
@@ -67,7 +75,7 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
               </div>
             </div>
 
-            <button type="button" disabled className="mt-5 flex w-full items-center justify-center gap-2 border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm font-medium text-yellow-300/45 disabled:cursor-not-allowed disabled:opacity-60"><Coins size={18} strokeWidth={1.8} /> Adquirir monedas</button>
+            <button type="button" onClick={() => openSection("coins")} className="mt-5 flex w-full items-center justify-center gap-2 border border-yellow-500/30 bg-yellow-500/[0.06] px-4 py-3 text-sm font-medium text-yellow-300/80 transition hover:border-yellow-400/50 hover:bg-yellow-500/10"><Coins size={18} strokeWidth={1.8} /> Adquirir monedas <ArrowRight size={16} /></button>
 
             <div className="mt-8 space-y-3">
               {sections.map(({ id, title, subtitle, icon: Icon, ...rest }) => {
@@ -91,19 +99,31 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
             <button type="button" onClick={goBack} className="mb-7 inline-flex items-center gap-2 border border-white/10 px-3 py-2 text-sm text-white/65 transition hover:border-white/25 hover:text-white"><ArrowLeft size={16} /> Regresar</button>
             {displayedSection === "paquetes" ? (
               <>
+                <h1 className="text-xl font-medium">Paquetes especiales</h1>
+                <p className="mt-2 text-sm leading-6 text-white/40">Colecciones temáticas que reúnen varios artículos en una sola compra.</p>
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {itemPacks.map((pack) => <article key={pack.id} className={"flex flex-col border p-5 " + pack.accent}>
+                    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-medium">{pack.name}</h2><p className="mt-1 text-xs text-white/45">{pack.subtitle}</p></div><Package size={22} className="shrink-0 text-white/50" strokeWidth={1.5} /></div>
+                    <ul className="mt-5 flex-1 space-y-2">{pack.contents.map((item) => <li key={item} className="flex items-start gap-2 text-sm text-white/65"><span className="mt-1 text-white/30">•</span><span>{item}</span></li>)}</ul>
+                    <button type="button" disabled className="mt-5 w-full border border-white/10 px-4 py-3 text-sm text-white/35 disabled:cursor-not-allowed">Próximamente</button>
+                  </article>)}
+                </div>
+                <p className="mt-5 text-xs leading-5 text-white/25">Los contenidos son propuestas iniciales; precios y disponibilidad se definirán más adelante.</p>
+              </>
+            ) : displayedSection === "coins" ? (
+              <>
                 <h1 className="text-xl font-medium">Paquetes de monedas</h1>
                 <p className="mt-2 text-sm leading-6 text-white/40">Elegí el impulso que mejor se adapte a tu partida.</p>
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                  {packs.map((pack) => <article key={pack.id} className={"relative flex flex-col border p-5 " + (pack.popular ? "border-yellow-400/30 bg-yellow-400/[0.04]" : "border-white/10 bg-white/[0.02]")}>
+                  {coinPacks.map((pack) => <article key={pack.id} className={"relative flex flex-col border p-5 " + (pack.popular ? "border-yellow-400/30 bg-yellow-400/[0.04]" : "border-white/10 bg-white/[0.02]")}>
                     {pack.popular && <span className="absolute right-3 top-3 text-[10px] uppercase tracking-[0.16em] text-yellow-300/70">Popular</span>}
                     <div className="flex items-center gap-2 text-yellow-300/85"><Coins size={22} strokeWidth={1.7} /><span className="text-2xl font-semibold tabular-nums">{pack.coins.toLocaleString("es-AR")}</span></div>
                     <p className="mt-2 text-xs text-white/40">{pack.description}</p><div className="mt-5 text-lg font-medium">{pack.price}</div>
                     <button type="button" disabled className="mt-4 w-full border border-white/10 px-4 py-3 text-sm text-white/35 disabled:cursor-not-allowed">Próximamente</button>
                   </article>)}
                 </div>
-                <p className="mt-5 text-xs leading-5 text-white/25">Los paquetes todavía no están disponibles para la compra. Los precios son orientativos y pueden cambiar.</p>
-              </>
-            ) : section ? (
+                <p className="mt-5 text-xs leading-5 text-white/25">Los paquetes de monedas todavía no están disponibles para la compra. Los precios son orientativos y pueden cambiar.</p>
+              </>            ) : section ? (
               <>
                 <h1 className="text-xl font-medium">{section.title}</h1><p className="mt-2 text-sm leading-6 text-white/40">{section.subtitle}</p>
                 <StoreItems items={section.items} gems={gems} owned={owned} />
