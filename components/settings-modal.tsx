@@ -11,6 +11,7 @@ type Props = {
   activeGlyphSet: GlyphSetId;
   activeAvatar: string;
   activeTheme: string;
+  activeChest: string;
 };
 
 const themes: StoreItem[] = [
@@ -20,12 +21,13 @@ const themes: StoreItem[] = [
   { id: "theme-ocean", name: "Ocean", preview: "theme-ocean" },
 ];
 
-export default function SettingsModal({ username, owned, activeGlyphSet, activeAvatar, activeTheme }: Props) {
+export default function SettingsModal({ username, owned, activeGlyphSet, activeAvatar, activeTheme, activeChest }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"general" | "personalization">("general");
   const [glyphSet, setGlyphSet] = useState<GlyphSetId>(activeGlyphSet);
   const [avatar, setAvatar] = useState(activeAvatar);
   const [theme, setTheme] = useState(activeTheme);
+  const [chest, setChest] = useState(activeChest);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -40,13 +42,14 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
   ];
   const avatarItems: StoreItem[] = [{ id: "", name: "Predeterminado", image: "/store/avatars/predeterminado.svg" }, ...owned.filter((item) => item.id.startsWith("avatar-"))];
   const themeItems = themes.filter((item) => item.id === "dark" || owned.some((ownedItem) => ownedItem.id === item.id));
+  const chestItems: StoreItem[] = [{ id: "", name: "common", image: "/store/chests/predeterminado.svg" }, ...owned.filter((item) => item.id.startsWith("chest-"))];
 
   async function save() {
     setSaving(true); setError(""); setSaved("");
     const res = await fetch("/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ glyphSetId: glyphSet, avatarId: avatar, themeId: theme }),
+      body: JSON.stringify({ glyphSetId: glyphSet, avatarId: avatar, themeId: theme, chestId: chest }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) setError(data?.error ?? "No se pudieron guardar los ajustes.");
@@ -100,6 +103,7 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
           <Carousel title="Set de glifos" items={glyphItems} value={glyphSet} onChange={(value) => setGlyphSet(value as GlyphSetId)} />
           <Carousel title="Avatar" items={avatarItems} value={avatar} onChange={setAvatar} />
           <Carousel title="Tema" items={themeItems} value={theme} onChange={setTheme} />
+          <Carousel title="Cofre" items={chestItems} value={chest} onChange={setChest} />
         </div>}
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {saved && <p className="mt-4 text-sm text-emerald-400">{saved}</p>}
