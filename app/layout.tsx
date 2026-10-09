@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "@/components/theme-provider";
+import { I18nProvider } from "@/components/i18n-provider";
 
 const roboto = Roboto({ subsets: ["latin"], variable: "--font-roboto" });
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={roboto.variable} suppressHydrationWarning>
-      <body><ThemeProvider />{children}</body>
+      <body><I18nProvider><ThemeProvider />{children}</I18nProvider></body>
     </html>
   );
 }
