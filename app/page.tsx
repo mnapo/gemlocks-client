@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Swords, Store, UsersRound } from "lucide-react";
+import SettingsModal from "@/components/settings-modal";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { DEFAULT_GLYPH_SET_ID, type GlyphSetId } from "@/lib/game/glyphs";
+import { STORE_SECTIONS } from "@/lib/store/items";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import LogoutButton from "@/components/logout-button";
 import TutorialModal from "@/components/tutorial-modal";
@@ -12,12 +16,35 @@ export default async function Home() {
   const user = token ? await verifySessionToken(token) : null;
   if (!user) redirect("/login");
 
+  const client = getAdminClient();
+  const [{ data: profile }, { data: ownedRows }] = await Promise.all([
+    client.from("app_users").select("active_glyph_set,active_avatar,active_theme").eq("id", user.sub).single(),
+    client.from("user_store_items").select("item_id").eq("user_id", user.sub),
+  ]);
+  const ownedIds = (ownedRows ?? []).map((row) => row.item_id);
+  const allItems = Object.values(STORE_SECTIONS).flatMap((section) => section.items);
+  const ownedItems = allItems.filter((item) => ownedIds.includes(item.id)).map((item) => ({
+    id: item.id,
+    name: item.name,
+    image: "image" in item ? item.image : undefined,
+    preview: "preview" in item ? item.preview : undefined,
+  }));
+
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
       <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
         <header className="flex items-center justify-between border-b border-white/10 py-5">
           <span className="text-sm font-medium tracking-tight">gemlocks</span>
-          <LogoutButton />
+          <div className="flex items-center gap-1">
+            <SettingsModal
+              username={user.name || user.email}
+              owned={ownedItems}
+              activeGlyphSet={(profile?.active_glyph_set ?? DEFAULT_GLYPH_SET_ID) as GlyphSetId}
+              activeAvatar={profile?.active_avatar ?? ""}
+              activeTheme={profile?.active_theme ?? "dark"}
+            />
+            <LogoutButton />
+          </div>
         </header>
         <section className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-white/35">Bienvenido/a</p>
