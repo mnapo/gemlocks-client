@@ -62,7 +62,7 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
       <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
         <header className="flex items-center justify-between border-b border-white/10 py-5">
-          <Link href="/" className="flex items-center gap-2 text-sm font-medium tracking-tight transition hover:text-white/70"><ArrowLeft size={16} /> Inicio</Link>
+          <Link href="/" className="flex items-center gap-2 text-sm font-medium tracking-tight transition hover:text-white/70"><ArrowLeft size={16} /> {t("home")}</Link>
           <span className="text-xs uppercase tracking-[0.25em] text-white/30">{t("store")}</span>
         </header>
 
