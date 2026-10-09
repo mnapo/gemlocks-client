@@ -122,7 +122,7 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
                   {coinPacks.map((pack) => <article key={pack.id} className={"relative flex flex-col border p-5 " + (pack.popular ? "border-yellow-400/30 bg-yellow-400/[0.04]" : "border-white/10 bg-white/[0.02]")}>
                     {pack.popular && <span className="absolute right-3 top-3 text-[10px] uppercase tracking-[0.16em] text-yellow-300/70">{t("popular")}</span>}
                     <div className="flex items-center gap-2 text-yellow-300/85"><Coins size={22} strokeWidth={1.7} /><span className="text-2xl font-semibold tabular-nums">{pack.coins.toLocaleString("es-AR")}</span></div>
-                    <p className="mt-2 text-xs text-white/40">{t(({ starter: "smallHelp", small: "initialBoost", medium: "betterValue", large: "advanceMore" } as const)[pack.id])}</p><div className="mt-5 text-lg font-medium">{pack.price}</div>
+                    <p className="mt-2 text-xs text-white/40">{t(pack.id === "starter" ? "smallHelp" : pack.id === "small" ? "initialBoost" : pack.id === "medium" ? "betterValue" : "advanceMore")}</p><div className="mt-5 text-lg font-medium">{pack.price}</div>
                     <button type="button" disabled className="mt-4 w-full border border-white/10 px-4 py-3 text-sm text-white/35 disabled:cursor-not-allowed">{t("comingSoon")}</button>
                   </article>)}
                 </div>
