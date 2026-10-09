@@ -40,7 +40,7 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
 
   function openSection(id: string) {
     const selected = sections.find((item) => item.id === id);
-    if (!selected || ("locked" in selected && selected.locked)) return;
+    if (id !== "coins" && (!selected || ("locked" in selected && selected.locked))) return;
     setDirection("forward");
     setExitingSection(null);
     setActiveSection(id);
