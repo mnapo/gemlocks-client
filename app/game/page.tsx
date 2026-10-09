@@ -30,12 +30,15 @@ function RenderGlyph({ glyph, className = "h-10 w-10" }: { glyph: { value?: stri
 }
 
 function Glyphs({ value, glyphSetId = DEFAULT_GLYPH_SET_ID }: { value: string; glyphSetId?: GlyphSetId }) {
-  const glyphSet = getGlyphSet(glyphSetId);
   const glyphs = Array.from(value);
+  const inferredSet = getGlyphSetForCode(value);
+  const selectedSet = getGlyphSet(glyphSetId);
+  const glyphSet = inferredSet ?? selectedSet;
   return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => {
-    const glyph = glyphSet.glyphs.find((item) => item.value === glyphs[index]);
+    const character = glyphs[index];
+    const glyph = glyphSet.glyphs.find((item) => item.value === character);
     return <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/15 bg-white/[0.03] font-mono text-xl">
-      {glyph ? <RenderGlyph glyph={glyph} className="h-11 w-11 text-2xl" /> : <span className="text-white/15">·</span>}
+      {glyph ? <RenderGlyph glyph={glyph} className="h-11 w-11 text-2xl" /> : character ? <span className="text-2xl">{character}</span> : <span className="text-white/15">·</span>}
     </div>;
   })}</div>;
 }
