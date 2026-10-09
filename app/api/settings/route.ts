@@ -41,3 +41,16 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: "No se pudieron guardar los ajustes." }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  const user = token ? await verifySessionToken(token) : null;
+  if (!user) return NextResponse.json({ error: "Sesión inválida." }, { status: 401 });
+  const { data, error } = await getAdminClient()
+    .from("app_users")
+    .select("active_glyph_set,active_avatar,active_theme,language")
+    .eq("id", user.sub)
+    .single();
+  if (error) return NextResponse.json({ error: "No se pudieron cargar los ajustes." }, { status: 500 });
+  return NextResponse.json(data);
+}
