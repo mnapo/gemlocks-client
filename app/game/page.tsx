@@ -191,6 +191,19 @@ export default function GamePage() {
 
   useEffect(() => {
     let active = true;
+    fetch("/api/settings", { cache: "no-store" })
+      .then((res) => res.ok ? res.json() : null)
+      .then((settings) => {
+        if (active && settings?.active_glyph_set && settings.active_glyph_set in GLYPH_SETS) {
+          setGlyphSetId(settings.active_glyph_set as GlyphSetId);
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
     (async () => {
       try {
         const res = await fetch("/api/game/current", { cache: "no-store" });
