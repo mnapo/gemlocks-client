@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
   if (!isValidCode(humanSecret, alphabetString)) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
 
   const client = getAdminClient();
+  const botItemIds: Record<number, string> = { 2: "bot-byte", 3: "bot-nexus", 4: "bot-oracle", 5: "bot-singularity" };
+  const requiredItemId = botItemIds[difficulty];
+  if (requiredItemId) {
+    const { data: unlocked, error: unlockError } = await client.from("user_store_items").select("item_id").eq("user_id", user.sub).eq("item_id", requiredItemId).maybeSingle();
+    if (unlockError) return NextResponse.json({ error: "No se pudo verificar el desbloqueo del bot." }, { status: 500 });
+    if (!unlocked) return NextResponse.json({ error: "Este bot todavía está bloqueado." }, { status: 403 });
+  }
   const { data: existing } = await client.from("game_sessions").select("game_id").eq("user_id", user.sub).eq("status","active").limit(1).maybeSingle();
   if (existing) return NextResponse.json({ error: "Ya tenés una partida activa" }, { status: 409 });
 
