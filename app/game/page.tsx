@@ -158,7 +158,6 @@ function ResultPanel({ result, label, action, onAction, glyphSetId }: { result: 
 export default function GamePage() {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
   const [activeAvatar, setActiveAvatar] = useState("");
-  const [activeAvatar, setActiveAvatar] = useState("");
   const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [gems, setGems] = useState(0);
   const [purchasingBot, setPurchasingBot] = useState<number | null>(null);
