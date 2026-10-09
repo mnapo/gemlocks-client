@@ -50,7 +50,10 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) setError(data?.error ?? "No se pudieron guardar los ajustes.");
-    else setSaved("Preferencias guardadas.");
+    else {
+      setSaved("Preferencias guardadas.");
+      window.dispatchEvent(new CustomEvent("gemlocks:theme-change", { detail: theme.replace("theme-", "") }));
+    }
     setSaving(false);
   }
 
