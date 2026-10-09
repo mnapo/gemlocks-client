@@ -137,3 +137,8 @@ html[data-theme="ocean"] body [class*="bg-[#171717]"] { background-color: var(--
 @keyframes bot-consider{0%,100%{transform:translateY(-50%) rotate(0deg)}50%{transform:translateY(calc(-50% - 2px)) rotate(-2deg)}}
 @keyframes chest-react{0%,74%,100%{filter:drop-shadow(0 0 8px rgba(245,180,75,.1));transform:scale(1)}82%{filter:drop-shadow(0 0 17px rgba(113,225,255,.55));transform:scale(1.035)}90%{filter:drop-shadow(0 0 8px rgba(245,180,75,.18));transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.energy-orb,.energy-orb:before,.energy-orb:after,.bot-attack-chest,.bot-thinking-avatar{animation:none}.energy-orb{left:55px;opacity:.35;transform:translateY(-50%)}}
+
+
+@keyframes coin-reward-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.coin-reward{animation:coin-reward-float 1.8s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.coin-reward{animation:none}}
