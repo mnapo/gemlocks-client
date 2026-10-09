@@ -14,7 +14,7 @@ type Props = {
 };
 
 const themes: StoreItem[] = [
-  { id: "theme-dark", name: "Dark", preview: "theme-dark" },
+  { id: "dark", name: "Dark", preview: "theme-dark" },
   { id: "theme-light", name: "Light", preview: "theme-light" },
   { id: "theme-pink", name: "Pink", preview: "theme-pink" },
   { id: "theme-ocean", name: "Ocean", preview: "theme-ocean" },
@@ -39,7 +39,7 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
     })),
   ];
   const avatarItems: StoreItem[] = [{ id: "", name: "Predeterminado", image: "/store/avatars/predeterminado.svg" }, ...owned.filter((item) => item.id.startsWith("avatar-"))];
-  const themeItems = themes.filter((item) => item.id === "theme-dark" || owned.some((ownedItem) => ownedItem.id === item.id));
+  const themeItems = themes.filter((item) => item.id === "dark" || owned.some((ownedItem) => ownedItem.id === item.id));
 
   async function save() {
     setSaving(true); setError(""); setSaved("");
