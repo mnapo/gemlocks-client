@@ -2,7 +2,7 @@ export const LANGUAGES = ["en", "es", "es-AR"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 const english = {
-  settings:"Settings", general:"General", personalization:"Personalization", nickname:"Username", language:"Language",
+  logout:"Log out", loggingOut:"Logging out...", resume:"Resume", settings:"Settings", general:"General", personalization:"Personalization", nickname:"Username", language:"Language",
   glyphSet:"Glyph set", avatar:"Avatar", theme:"Theme", chest:"Chest", default:"Default", numeric:"Numeric",
   dark:"Dark", light:"Light", pink:"Pink", ocean:"Ocean", previous:"Previous", next:"Next", closeSettings:"Close settings",
   saveChanges:"Save changes", saving:"Saving...", settingsSaved:"Preferences saved.", settingsError:"Could not save settings.",
@@ -26,7 +26,7 @@ const english = {
 } as const;
 
 const spanish = {
-  settings:"Ajustes", general:"General", personalization:"Personalización", nickname:"Nombre de usuario", language:"Idioma",
+  logout:"Cerrar sesión", loggingOut:"Saliendo...", resume:"Reanudar", settings:"Ajustes", general:"General", personalization:"Personalización", nickname:"Nombre de usuario", language:"Idioma",
   glyphSet:"Set de glifos", avatar:"Avatar", theme:"Tema", chest:"Cofre", default:"Predeterminado", numeric:"Numérico",
   dark:"Oscuro", light:"Claro", pink:"Rosa", ocean:"Océano", previous:"Anterior", next:"Siguiente", closeSettings:"Cerrar ajustes",
   saveChanges:"Guardar cambios", saving:"Guardando...", settingsSaved:"Preferencias guardadas.", settingsError:"No se pudieron guardar los ajustes.",
