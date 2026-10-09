@@ -20,7 +20,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <button type="button" onClick={logout} disabled={loading} className="flex h-9 items-center gap-2 px-2 text-xs text-red-400/80 transition hover:text-red-300 disabled:opacity-50">
+    <button type="button" onClick={logout} disabled={loading} className="flex h-9 items-center gap-2 px-2 text-xs text-red-500 transition hover:text-red-400 disabled:opacity-50">
       <LogOut size={16} strokeWidth={1.8} />
       {loading ? "Saliendo..." : "Cerrar sesión"}
     </button>
