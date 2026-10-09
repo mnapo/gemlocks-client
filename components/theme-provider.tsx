@@ -4,11 +4,16 @@ import { useEffect } from "react";
 
 const THEMES = new Set(["dark", "light", "pink", "ocean"]);
 
+function normalizeTheme(value: string | null | undefined) {
+  const normalized = value?.startsWith("theme-") ? value.slice(6) : value;
+  return normalized && THEMES.has(normalized) ? normalized : "dark";
+}
+
 export default function ThemeProvider() {
   useEffect(() => {
     let active = true;
     const applyTheme = (value: string | null | undefined) => {
-      const theme = typeof value === "string" && THEMES.has(value) ? value : "dark";
+      const theme = normalizeTheme(value);
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
     };
