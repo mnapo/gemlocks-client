@@ -9,6 +9,7 @@ import { STORE_SECTIONS } from "@/lib/store/items";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import LogoutButton from "@/components/logout-button";
 import TutorialModal from "@/components/tutorial-modal";
+import T from "@/components/translated-text";
 import HomePlayButton from "@/components/home-play-button";
 
 export default async function Home() {
@@ -48,25 +49,25 @@ export default async function Home() {
           </div>
         </header>
         <section className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/35">Bienvenido/a</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/35"><T k="welcome" /></p>
           <div className="mt-3 flex items-center justify-center gap-3"><img src={profile?.active_avatar ? (ownedItems.find((item) => item.id === profile.active_avatar)?.image ?? "/store/avatars/predeterminado.svg") : "/store/avatars/predeterminado.svg"} alt="" className="h-12 w-12 shrink-0 rounded-full object-contain" /><h1 className="text-4xl font-medium tracking-tight">{user.name || user.email}</h1></div>
           <div className="mt-4 flex items-center justify-center gap-4" aria-label="Gemlocks"><span className="home-gem" /><span className="home-gem" /><span className="home-gem" /></div>
 
           <div className="mt-8 grid w-full max-w-xl grid-cols-3 gap-3">
             <button type="button" disabled className="home-action-card">
               <span className="home-action-icon home-action-online"><UsersRound size={40} strokeWidth={1.5} /></span>
-              <span className="mt-3 text-sm font-medium">Online</span>
-              <span className="mt-1 text-[10px] text-white/30">En desarrollo</span>
+              <span className="mt-3 text-sm font-medium"><T k="online" /></span>
+              <span className="mt-1 text-[10px] text-white/30"><T k="inDevelopment" /></span>
             </button>
             <HomePlayButton />
             <Link href="/store" className="home-action-card">
               <span className="home-action-icon home-action-store"><Store size={40} strokeWidth={1.5} /></span>
-              <span className="mt-3 text-sm font-medium">Tienda</span>
+              <span className="mt-3 text-sm font-medium"><T k="store" /></span>
             </Link>
           </div>
 
           <TutorialModal className="mt-5" />
-          <Link href="/ranking" className="mt-4 text-xs text-white/40 transition hover:text-white/75">Ranking</Link>
+          <Link href="/ranking" className="mt-4 text-xs text-white/40 transition hover:text-white/75"><T k="ranking" /></Link>
         </section>
       </div>
     </main>
