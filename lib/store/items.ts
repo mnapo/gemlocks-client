@@ -1,4 +1,4 @@
-export type StoreSectionId = "glifos" | "temas" | "avatares";
+export type StoreSectionId = "glifos" | "temas" | "avatares" | "gemlocks";
 
 export type StoreItem = {
   id: string;
@@ -42,6 +42,15 @@ export const STORE_SECTIONS: Record<StoreSectionId, { title: string; subtitle: s
       { id: "avatar-doctora", name: "Doctora", price: 15, image: "/store/avatars/doctora.svg" },
       { id: "avatar-mago", name: "Mago", price: 15, image: "/store/avatars/mago.svg" },
       { id: "avatar-maga", name: "Maga", price: 15, image: "/store/avatars/maga.svg" },
+    ],
+  },
+  gemlocks: {
+    title: "Gemlocks",
+    subtitle: "Personalizá tu cofre y elegí cómo se presenta tu tesoro durante las partidas.",
+    items: [
+      { id: "chest-stone", name: "stone", price: 25, image: "/store/chests/stone.svg" },
+      { id: "chest-pirate", name: "pirate", price: 35, image: "/store/chests/pirate.svg" },
+      { id: "chest-futuristic", name: "futuristic", price: 50, image: "/store/chests/futuristic.svg" },
     ],
   },
 };
