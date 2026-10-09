@@ -48,7 +48,7 @@ export default async function Home() {
         </header>
         <section className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-white/35">Bienvenido/a</p>
-          <h1 className="mt-3 text-4xl font-medium tracking-tight">{user.name || user.email}</h1>
+          <div className="mt-3 flex items-center justify-center gap-3"><img src={profile?.active_avatar ? (ownedItems.find((item) => item.id === profile.active_avatar)?.image ?? "/store/avatars/predeterminado.svg") : "/store/avatars/predeterminado.svg"} alt="" className="h-12 w-12 shrink-0 rounded-full object-contain" /><h1 className="text-4xl font-medium tracking-tight">{user.name || user.email}</h1></div>
           <div className="mt-4 flex items-center justify-center gap-4" aria-label="Gemlocks"><span className="home-gem" /><span className="home-gem" /><span className="home-gem" /></div>
 
           <div className="mt-8 grid w-full max-w-xl grid-cols-3 gap-3">
