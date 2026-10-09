@@ -142,3 +142,13 @@ html[data-theme="ocean"] body [class*="bg-[#171717]"] { background-color: var(--
 @keyframes coin-reward-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .coin-reward{animation:coin-reward-float 1.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.coin-reward{animation:none}}
+
+
+.store-view{will-change:transform,opacity}
+.store-home-out{animation:store-home-out .32s ease both;pointer-events:none}
+.store-detail-in{animation:store-detail-in .38s cubic-bezier(.22,.7,.2,1) both}
+.store-home-in{animation:store-home-in .38s cubic-bezier(.22,.7,.2,1) both}
+@keyframes store-home-out{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-42px)}}
+@keyframes store-detail-in{from{opacity:0;transform:translateX(52px)}to{opacity:1;transform:translateX(0)}}
+@keyframes store-home-in{from{opacity:0;transform:translateX(-42px)}to{opacity:1;transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.store-home-out,.store-detail-in,.store-home-in{animation:none}}
