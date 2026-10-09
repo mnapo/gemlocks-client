@@ -104,7 +104,7 @@ function GlyphSelector({
         <button type="button" onClick={randomize} disabled={discarded.size > 6} className="hidden h-10 border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20 sm:flex">Aleatorio</button>
       </div>
       {onToggleDiscard && <div className="hidden sm:block sm:ml-auto">{discardButton}</div>}
-      {mobileOptions && <div className="flex w-full gap-2 overflow-hidden sm:hidden"><button type="button" title="Borrar selección" aria-label="Borrar selección" onClick={() => onChange("")} className="flex h-10 flex-1 items-center justify-center border border-white/10 text-red-500 transition hover:border-white/25 hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button><button type="button" onClick={randomize} disabled={discarded.size > 6} className="flex h-10 flex-1 items-center justify-center border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20">Aleatorio</button>{onToggleDiscard && discardButton}</div>}
+      {mobileOptions && <div className="flex w-full gap-2 overflow-hidden sm:hidden"><button type="button" title=t("clearSelection") aria-label=t("clearSelection") onClick={() => onChange("")} className="flex h-10 flex-1 items-center justify-center border border-white/10 text-red-500 transition hover:border-white/25 hover:text-red-400"><Trash2 size={17} strokeWidth={2.2} /></button><button type="button" onClick={randomize} disabled={discarded.size > 6} className="flex h-10 flex-1 items-center justify-center border border-white/10 px-3 text-xs text-white/50 transition hover:border-white/25 hover:text-white disabled:opacity-20">Aleatorio</button>{onToggleDiscard && discardButton}</div>}
     </div>
     {discardMode && <div className="mb-2 border border-white/10 px-3 py-2 text-xs text-white/45">{t("discardHint")}</div>}
     <div className="mt-5 grid grid-cols-5 gap-2">
@@ -376,7 +376,7 @@ export default function GamePage() {
           setPhase(data.status);
         }
         else setPhase("opponent-result");
-      } catch { if (active) setError("Error de conexión. Intentá de novo."); }
+      } catch { if (active) setError(t("networkError")); }
     }, 1200);
     return () => { active = false; window.clearTimeout(timer); };
   }, [phase]);
