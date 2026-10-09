@@ -29,18 +29,26 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
 
+  const [exitingSection, setExitingSection] = useState<string | null>(null);
+
   function openSection(id: string) {
-    if ("locked" in (sections.find((item) => item.id === id) ?? {}) && sections.find((item) => item.id === id)?.locked) return;
+    const selected = sections.find((item) => item.id === id);
+    if (!selected || ("locked" in selected && selected.locked)) return;
     setDirection("forward");
+    setExitingSection(null);
     setActiveSection(id);
   }
 
   function goBack() {
+    if (!activeSection) return;
     setDirection("back");
+    setExitingSection(activeSection);
     setActiveSection(null);
+    window.setTimeout(() => setExitingSection(null), 340);
   }
 
-  const section = activeSection && activeSection !== "paquetes" ? STORE_SECTIONS[activeSection as StoreSectionId] : null;
+  const displayedSection = activeSection ?? exitingSection;
+  const section = displayedSection && displayedSection !== "paquetes" ? STORE_SECTIONS[displayedSection as StoreSectionId] : null;
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]">
@@ -50,8 +58,8 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
           <span className="text-xs uppercase tracking-[0.25em] text-white/30">Tienda</span>
         </header>
 
-        <div className="relative flex-1 overflow-hidden">
-          <section aria-hidden={activeSection !== null} className={"store-view py-10 " + (activeSection ? "store-home-out" : direction === "back" ? "store-home-in" : "")}>
+        <div className="relative grid flex-1 grid-cols-1 overflow-hidden">
+          <section aria-hidden={activeSection !== null} className={"store-view col-start-1 row-start-1 py-10 " + (activeSection ? "store-home-out" : direction === "back" ? "store-home-in" : "")}>
             <div className="border border-white/10 bg-white/[0.02] p-5">
               <p className="text-xs uppercase tracking-[0.25em] text-white/30">Tu saldo</p>
               <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
@@ -80,9 +88,9 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
             </div>
           </section>
 
-          {activeSection !== null && <section key={activeSection} className={"store-view store-detail-in py-10 " + (direction === "back" ? "store-detail-out" : "")}>
+          {displayedSection !== null && <section key={displayedSection} className={"store-view col-start-1 row-start-1 py-10 " + (direction === "back" && exitingSection ? "store-detail-out" : "store-detail-in")}>
             <button type="button" onClick={goBack} className="mb-7 inline-flex items-center gap-2 border border-white/10 px-3 py-2 text-sm text-white/65 transition hover:border-white/25 hover:text-white"><ArrowLeft size={16} /> Regresar</button>
-            {activeSection === "paquetes" ? (
+            {displayedSection === "paquetes" ? (
               <>
                 <h1 className="text-xl font-medium">Paquetes de monedas</h1>
                 <p className="mt-2 text-sm leading-6 text-white/40">Elegí el impulso que mejor se adapte a tu partida.</p>
