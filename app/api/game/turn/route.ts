@@ -4,6 +4,7 @@ import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
 import { finishGame, loadGame, touchGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
 import { getGlyphSetForCode } from "@/lib/game/glyphs";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 function result(score: GuessResult) { return { guess: score.guess, perfect: score.perfect, regular: score.regular }; }
 
@@ -48,6 +49,8 @@ export async function POST(req: NextRequest) {
     finalTurnUsed = true;
   }
 
+  let coinsReward = 0;
+  let coinsBalance: number | undefined;
   const nextState: GameState = { ...state, currentPlayer: actor === "human" ? "machine" : "human", humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed };
   if (status === "playing") {
     await touchGame(state.gameId, state.userId, nextState);
@@ -62,9 +65,14 @@ export async function POST(req: NextRequest) {
     if (!finished) {
       return NextResponse.json({ error: "La partida no pudo finalizarse." }, { status: 500 });
     }
+    if (status === "won") {
+      coinsReward = ({ 1: 15, 2: 25, 3: 40, 4: 60, 5: 80 } as Record<number, number>)[difficulty] ?? 0;
+      const { data: profile } = await getAdminClient().from("app_users").select("coins").eq("id", state.userId).maybeSingle();
+      if (profile) coinsBalance = Number(profile.coins ?? 0);
+    }
   }
 
-  const res = NextResponse.json({ status, actor, result: result(attack), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
+  const res = NextResponse.json({ status, actor, result: result(attack), ...(status === "won" ? { coinsReward, ...(coinsBalance !== undefined ? { coinsBalance } : {}) } : {}), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
   if (status === "won" || status === "lost" || status === "draw") {
     clearGameCookie(res);
   } else {
