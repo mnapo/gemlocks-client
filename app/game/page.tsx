@@ -7,7 +7,6 @@ import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
 import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, type GlyphSetId } from "@/lib/game/glyphs";
 import { GAME_BOTS } from "@/lib/game/bots";
-import { useProfileAvatar } from "@/lib/use-profile-avatar";
 
 type Result = { guess: string; perfect: number; regular: number };
 type Phase = "code-select" | "difficulty" | "coin-toss" | "coin-result" | "player-turn" | "player-result" | "thinking" | "opponent-result" | "final-turn" | "won" | "lost" | "draw";
