@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ArrowLeft, ArrowRight, Coins, Gem, Package, Palette, Sparkles, Swords, UserRound, Zap } from "lucide-react";
 import { STORE_SECTIONS, type StoreSectionId } from "@/lib/store/items";
 import StoreItems from "@/app/store/[section]/store-items";
