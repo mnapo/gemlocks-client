@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function LogoutButton() {
   const router = useRouter();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   async function logout() {
@@ -22,7 +24,7 @@ export default function LogoutButton() {
   return (
     <button type="button" onClick={logout} disabled={loading} className="flex h-9 items-center gap-2 px-2 text-xs text-red-500 transition hover:text-red-400 disabled:opacity-50">
       <LogOut size={16} strokeWidth={1.8} />
-      {loading ? "Saliendo..." : "Cerrar sesión"}
+      {loading ? t("loggingOut") : t("logout")}
     </button>
   );
 }
