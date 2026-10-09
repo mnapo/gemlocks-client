@@ -77,18 +77,21 @@ export default function StoreBrowser({ coins, gems, owned }: Props) {
 
             <button type="button" onClick={() => openSection("coins")} className="mt-5 flex w-full items-center justify-center gap-2 border border-yellow-500/30 bg-yellow-500/[0.06] px-4 py-3 text-sm font-medium text-yellow-300/80 transition hover:border-yellow-400/50 hover:bg-yellow-500/10"><Coins size={18} strokeWidth={1.8} /> Adquirir monedas <ArrowRight size={16} /></button>
 
-            <div className="mt-8 space-y-3">
+            <div className="mt-6 grid grid-cols-2 gap-3">
               {sections.map(({ id, title, subtitle, icon: Icon, ...rest }) => {
                 const locked = "locked" in rest && rest.locked;
+                const cardClass = "flex min-h-[92px] items-center gap-3 border border-white/10 bg-white/[0.02] p-3 text-left transition";
                 return locked ? (
-                  <div key={id} className="flex w-full items-center gap-4 border border-white/10 bg-white/[0.02] p-4 text-left opacity-40">
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={27} strokeWidth={1.5} /></span>
-                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-white/35">{subtitle}</span></span><ArrowRight className="shrink-0 text-white/20" size={20} strokeWidth={1.7} />
+                  <div key={id} className={cardClass + " cursor-not-allowed opacity-40"}>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={20} strokeWidth={1.5} /></span>
+                    <span className="min-w-0 flex-1 text-sm font-medium">{title}</span>
+                    <ArrowRight className="shrink-0 text-white/20" size={16} strokeWidth={1.7} />
                   </div>
                 ) : (
-                  <button key={id} type="button" onClick={() => openSection(id)} className="flex w-full items-center gap-4 border border-white/10 bg-white/[0.02] p-4 text-left transition hover:border-white/20">
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={27} strokeWidth={1.5} /></span>
-                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-white/35">{subtitle}</span></span><ArrowRight className="shrink-0 text-white/20" size={20} strokeWidth={1.7} />
+                  <button key={id} type="button" onClick={() => openSection(id)} className={cardClass + " hover:border-white/20"}>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60"><Icon size={20} strokeWidth={1.5} /></span>
+                    <span className="min-w-0 flex-1 text-sm font-medium">{title}</span>
+                    <ArrowRight className="shrink-0 text-white/20" size={16} strokeWidth={1.7} />
                   </button>
                 );
               })}
