@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeftCircle, Bot, Check, Gem, LockKeyhole, Trash2, User, X } from "lucide-react";
+import { ArrowLeftCircle, Bot, Check, Coins, Gem, LockKeyhole, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
 import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, type GlyphSetId } from "@/lib/game/glyphs";
@@ -160,6 +160,8 @@ export default function GamePage() {
   const [activeChest, setActiveChest] = useState("");
   const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [gems, setGems] = useState(0);
+  const [coinsReward, setCoinsReward] = useState(0);
+  const [coinsBalance, setCoinsBalance] = useState<number | null>(null);
   const [purchasingBot, setPurchasingBot] = useState<number | null>(null);
   const [glyphSetId, setGlyphSetId] = useState<GlyphSetId>(DEFAULT_GLYPH_SET_ID);
   const [phase, setPhase] = useState<Phase>("difficulty");
@@ -308,7 +310,7 @@ export default function GamePage() {
       const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? "No se pudo iniciar la partida"); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); setCoinsReward(0); setCoinsBalance(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
@@ -335,7 +337,10 @@ export default function GamePage() {
       const result = data.result as Result;
       setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
       if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
-      else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
+      else if (data.status === "won" || data.status === "lost" || data.status === "draw") {
+        if (data.status === "won") { setCoinsReward(Number(data.coinsReward ?? 0)); setCoinsBalance(Number.isFinite(Number(data.coinsBalance)) ? Number(data.coinsBalance) : null); }
+        setPhase(data.status);
+      }
       else setPhase("player-result");
     } catch { setError("Error de conexión. Intentá de nuevo."); }
     finally { setLoading(false); }
@@ -361,7 +366,10 @@ export default function GamePage() {
         const result = data.result as Result;
         setMachineResults((current) => [...current, result]); setLastResult(result); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
         if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
-        else if (data.status === "won" || data.status === "lost" || data.status === "draw") setPhase(data.status);
+        else if (data.status === "won" || data.status === "lost" || data.status === "draw") {
+          if (data.status === "won") { setCoinsReward(Number(data.coinsReward ?? 0)); setCoinsBalance(Number.isFinite(Number(data.coinsBalance)) ? Number(data.coinsBalance) : null); }
+          setPhase(data.status);
+        }
         else setPhase("opponent-result");
       } catch { if (active) setError("Error de conexión. Intentá de novo."); }
     }, 1200);
@@ -385,7 +393,7 @@ export default function GamePage() {
       {phase === "thinking" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="bot-attack-lane" aria-label="El bot analiza el ataque"><img src={GAME_BOTS.find((bot) => bot.level === difficulty)?.avatar ?? "/game/bots/spark.svg"} alt="" className="bot-thinking-avatar" /><span className="energy-orb" aria-hidden="true" /><img src={activeChest ? `/store/chests/${activeChest.replace("chest-", "")}.svg` : "/store/chests/predeterminado.svg"} alt="Cofre" className="bot-attack-chest" /></div><ThinkingGlyphs value={machineReveal}/><div className="mt-7 flex gap-2"><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/></div><p className="mt-5 text-sm text-white/40">Analizando posibilidades...</p></div>}
       {phase === "opponent-result" && lastResult && <ResultPanel result={lastResult} label="Ataque de la máquina" action="Tu turno" onAction={continueAfterOpponentResult} glyphSetId={glyphSetId}/>}
       {phase === "final-turn" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">último turno</div><h2 className="mt-5 text-3xl font-medium">{finalActor === "human" ? "Tenés una oportunidad más." : "La máquina tiene una oportunidad más."}</h2><p className="mt-4 max-w-md text-sm leading-6 text-white/40">{starter === "human" ? "Fuiste el primero en descubrir el código. Como empezaste primero, la máquina conserva su turno final para buscar el empate." : "La máquina fue la primera en descubrir el código. Como empezó primero, conservás un turno final para buscar el empate."}</p><button type="button" onClick={beginFinalTurn} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{finalActor === "human" ? "Jugar mi turno final" : "Continuar"}</button></div>}
-      {(phase === "won" || phase === "lost" || phase === "draw") && <div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? "Ganaste." : phase === "lost" ? "La máquina ganó." : "Empate."}</h2><div className="mt-5 flex flex-col items-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">Código del adversario</span><Glyphs value={machineSecret} glyphSetId={glyphSetId} /></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">Ambos descubrieron el código en su turno adicional.</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("difficulty"); setError(""); setMySecret(""); setGuess(""); setDiscarded(new Set()); setDiscardMode(false); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button><Link href="/" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">Inicio</Link></div></div>}
+      {(phase === "won" || phase === "lost" || phase === "draw") && <div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">partida terminada</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? "Ganaste." : phase === "lost" ? "La máquina ganó." : "Empate."}</h2><div className="mt-5 flex flex-col items-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">Código del adversario</span><Glyphs value={machineSecret} glyphSetId={glyphSetId} /></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">Ambos descubrieron el código en su turno adicional.</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("difficulty"); setError(""); setMySecret(""); setGuess(""); setDiscarded(new Set()); setDiscardMode(false); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">Nueva partida</button><Link href="/" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">Inicio</Link></div>{phase === "won" && coinsReward > 0 && <div className="coin-reward mt-10 flex flex-col items-center gap-2" aria-live="polite"><div className="flex items-center gap-2 text-amber-300"><Coins size={21} strokeWidth={1.8} /><span className="text-xl font-semibold tabular-nums">+{coinsReward}</span><span className="text-sm">monedas</span></div>{coinsBalance !== null && <span className="text-xs text-white/35">Saldo: {coinsBalance.toLocaleString("es-AR")} monedas</span>}</div>}</div>}
     </>}
   </section></div>
     {confirmClose && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-sm"><div className="w-full max-w-md border border-white/10 bg-[#111] p-6 shadow-2xl"><h2 className="text-xl font-medium">¿Está seguro/a de que desea cerrar la partida?</h2><p className="mt-3 text-sm leading-6 text-white/45">Esto contaría como derrota.</p><div className="mt-7 flex gap-3"><button type="button" onClick={() => setConfirmClose(false)} className="flex-1 border border-white/10 px-4 py-3 text-sm text-white/60 hover:border-white/25 hover:text-white">Cancelar</button><button type="button" onClick={confirmAbandon} className="flex-1 bg-red-500 px-4 py-3 text-sm font-medium text-white">Cerrar partida</button></div></div></div>}
