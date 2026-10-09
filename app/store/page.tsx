@@ -1,7 +1,5 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowRight, Gem, Coins, Sparkles, Zap, Palette, UserRound, Swords, Package } from "lucide-react";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase/admin";
 import StoreBrowser from "./store-browser";
