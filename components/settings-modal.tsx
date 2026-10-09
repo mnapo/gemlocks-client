@@ -80,7 +80,7 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
   }
 
   return <>
-    <button type="button" aria-label="Ajustes" title="Ajustes" onClick={() => { setOpen(true); setError(""); setSaved(""); }} className="flex h-9 w-9 items-center justify-center text-white/45 transition hover:text-white"><Settings size={18} strokeWidth={1.8}/></button>
+    <button type="button" aria-label="Ajustes" title="Ajustes" onClick={() => { setOpen(true); setError(""); setSaved(""); }} className="flex h-9 items-center justify-center gap-2 px-2 text-xs text-white/45 transition hover:text-white"><Settings size={17} strokeWidth={1.8}/><span>Configuración</span></button>
     {open && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0b0b] px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="max-h-full w-full max-w-xl overflow-y-auto border border-white/10 bg-[#111] p-5 sm:p-7">
         <header className="flex items-center justify-between">
