@@ -19,6 +19,7 @@ const sections = [
     ],
   },
   { title: "Power-ups", subtitle: "Poderes para ganar ventaja en partidas amateur", icon: Zap, locked: true },
+  { title: "Gemlocks", subtitle: "Adquirí cofres para personalizar el tesoro que aparece durante las partidas", icon: Package, locked: false },
   {
     title: "Temas",
     subtitle: "Modificá la estética de todo el juego",
