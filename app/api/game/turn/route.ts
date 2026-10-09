@@ -66,8 +66,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "La partida no pudo finalizarse." }, { status: 500 });
     }
     if (status === "won") {
-      coinsReward = ({ 1: 15, 2: 25, 3: 40, 4: 60, 5: 80 } as Record<number, number>)[difficulty] ?? 0;
-      const { data: profile } = await getAdminClient().from("app_users").select("coins").eq("id", state.userId).maybeSingle();
+      const admin = getAdminClient();
+      const { data: rewardRecord } = await admin.from("game_results").select("coins_reward").eq("game_id", state.gameId).eq("user_id", state.userId).maybeSingle();
+      const { data: profile } = await admin.from("app_users").select("coins").eq("id", state.userId).maybeSingle();
+      if (rewardRecord) coinsReward = Number(rewardRecord.coins_reward ?? 0);
       if (profile) coinsBalance = Number(profile.coins ?? 0);
     }
   }
