@@ -50,7 +50,7 @@ export default function StoreItems({ items, gems: initialGems, owned: initialOwn
       {pending && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0b0b] px-5">
           <div className="w-full max-w-sm border border-white/10 bg-[#111] p-6">
-            <h2 className="text-lg font-medium">¿Está seguro que desea comprar {pending.name}?</h2>
+            <h2 className="text-lg font-medium">{pending.id.startsWith("chest-") ? "¿Querés adquirir este cofre?" : `¿Está seguro que desea comprar ${pending.name}?`}</h2>
             <p className="mt-3 text-sm leading-6 text-white/45">Después de la compra te quedarán <span className="text-white/80">{gems - pending.price} gemas</span>.</p>
             {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
             <div className="mt-6 flex gap-2">
