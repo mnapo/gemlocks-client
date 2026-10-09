@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Swords } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function HomePlayButton() {
+  const { t } = useI18n();
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -14,6 +16,6 @@ export default function HomePlayButton() {
   }, []);
   return <Link href="/game" className="home-action-card">
     <span className="home-action-icon home-action-play"><Swords size={40} strokeWidth={1.5} /></span>
-    <span className="mt-3 text-sm font-medium">{loading ? "Jugar" : active ? "Reanudar" : "Jugar"}</span>
+    <span className="mt-3 text-sm font-medium">{loading ? t("play") : active ? t("resume") : t("play")}</span>
   </Link>;
 }
