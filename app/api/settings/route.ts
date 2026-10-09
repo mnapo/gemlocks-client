@@ -10,6 +10,7 @@ const glyphItemIds: Record<string, GlyphSetId> = {
 };
 const avatarIds = ["avatar-pelota", "avatar-flores", "avatar-guitarra", "avatar-paisaje", "avatar-robot", "avatar-elfo", "avatar-elfa", "avatar-doctor", "avatar-doctora", "avatar-mago", "avatar-maga"];
 const themeIds = ["theme-light", "theme-pink", "theme-ocean"];
+const chestIds = ["chest-stone", "chest-pirate", "chest-futuristic"];
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
@@ -32,6 +33,10 @@ export async function POST(req: NextRequest) {
     if (body.avatarId && (!avatarIds.includes(body.avatarId) || !owned.has(body.avatarId))) return NextResponse.json({ error: "No tenés ese avatar." }, { status: 403 });
     updates.active_avatar = body.avatarId;
   }
+  if (typeof body?.chestId === "string") {
+    if (body.chestId && (!chestIds.includes(body.chestId) || !owned.has(body.chestId))) return NextResponse.json({ error: "No tenés ese cofre." }, { status: 403 });
+    updates.active_chest = body.chestId;
+  }
   if (typeof body?.themeId === "string") {
     if (body.themeId !== "dark" && (!themeIds.includes(body.themeId) || !owned.has(body.themeId))) return NextResponse.json({ error: "No tenés ese tema." }, { status: 403 });
     updates.active_theme = body.themeId;
@@ -48,7 +53,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Sesión inválida." }, { status: 401 });
   const { data, error } = await getAdminClient()
     .from("app_users")
-    .select("active_glyph_set,active_avatar,active_theme,language")
+    .select("active_glyph_set,active_avatar,active_theme,active_chest,language")
     .eq("id", user.sub)
     .single();
   if (error) return NextResponse.json({ error: "No se pudieron cargar los ajustes." }, { status: 500 });
