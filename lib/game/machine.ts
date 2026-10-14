@@ -50,6 +50,14 @@ function getPossibleSecrets(allCodes: string[], history: GuessResult[], alphabet
   // A 0:0 result naturally removes every code containing any glyph from that guess.
   // Apply every result cumulatively so levels 3–5 never reuse eliminated glyphs.
   for (const result of history) {
+    if (result.perfect === 0 && result.regular === 0) {
+      const excludedGlyphs = new Set(Array.from(result.guess));
+      candidates = candidates.filter((candidate) =>
+        Array.from(candidate).every((glyph) => !excludedGlyphs.has(glyph)),
+      );
+      continue;
+    }
+
     candidates = filterCandidates(candidates, result, alphabet);
   }
 
@@ -91,14 +99,24 @@ export function chooseMachineGuess(
     return randomItem(pool);
   }
 
-  // Nexus uses a small, randomized sample and accepts a deliberately imperfect choice.
+  // Nexus mostly guesses randomly, but occasionally compares a small sample.
+  // This gives it a modest edge over levels 1–2 without approaching minimax play.
   if (difficulty === 3) {
-    const sampled = sample(pool, 30);
-    const ranked = sampled
-      .map((guess) => ({ guess, score: scoreCandidate(guess, candidates, alphabet) }))
-      .sort((a, b) => a.score - b.score);
-    const lessPrecisePool = ranked.slice(0, Math.max(1, Math.ceil(ranked.length * 0.5)));
-    return randomItem(lessPrecisePool).guess;
+    if (Math.random() < 0.8) return randomItem(pool);
+
+    const sampled = sample(pool, 12);
+    let bestGuess = sampled[0];
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    for (const guess of sampled) {
+      const score = scoreCandidate(guess, candidates, alphabet);
+      if (score < bestScore) {
+        bestScore = score;
+        bestGuess = guess;
+      }
+    }
+
+    return bestGuess;
   }
 
   // Oracle and Singularity use increasingly broad minimax searches.
