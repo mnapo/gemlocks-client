@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (actor !== state.currentPlayer) return NextResponse.json({ error: "No es el turno de ese jugador" }, { status: 409 });
 
   const difficulty = Number(state.difficulty) as DifficultyLevel;
-  const guess = actor === "machine" ? chooseMachineGuess(state.machineGuesses, difficulty, Array.from(alphabet)) : String(body?.guess ?? "");
+  const guess = actor === "machine" ? chooseMachineGuess(state.machineGuesses, difficulty, Array.from(alphabet), state.humanSecret) : String(body?.guess ?? "");
   if (!isValidCode(guess, alphabet)) return NextResponse.json({ error: "El código debe tener 4 glifos únicos" }, { status: 400 });
 
   const attack = scoreGuess(actor === "human" ? state.machineSecret : state.humanSecret, guess, alphabet);
