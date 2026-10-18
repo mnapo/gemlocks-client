@@ -346,7 +346,7 @@ export default function GamePage() {
       else if (data.status === "won" || data.status === "lost" || data.status === "draw") {
         if (data.status === "won") setCoinsReward(Number(data.coinsReward ?? 0));
         setCoinsBalance(Number.isFinite(Number(data.coinsBalance)) ? Number(data.coinsBalance) : null);
-        setProgression(data.progression ?? null);
+        setProgression(data.progression && Number(data.progression.experienceReward) > 0 ? data.progression : null);
         setPhase(data.status);
       }
       else setPhase("player-result");
