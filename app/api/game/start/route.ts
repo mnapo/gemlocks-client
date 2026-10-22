@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   const difficulty = Number(body?.difficulty) as DifficultyLevel;
   const glyphSet = String(body?.glyphSet ?? "numeric") as GlyphSetId;
   const humanSecret = String(body?.humanSecret ?? "");
+  const requestedGlyphValues = Array.isArray(body?.glyphValues) ? body.glyphValues.filter((value: unknown): value is string => typeof value === "string") : [];
   const selectedSet = GLYPH_SETS[glyphSet];
 
   if (!DIFFICULTIES.some((item) => item.level === difficulty)) return NextResponse.json({ error: "Dificultad inválida" }, { status: 400 });
@@ -23,7 +24,11 @@ export async function POST(req: NextRequest) {
 
   const alphabet = selectedSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
   if (!isValidCode(humanSecret, alphabet.join(""))) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
-  const glyphValues = alphabet.length > 10 ? sampleGlyphValues(glyphSet) : alphabet;
+  const glyphValues = requestedGlyphValues.length ? requestedGlyphValues : (alphabet.length > 10 ? sampleGlyphValues(glyphSet) : alphabet);
+  const validGlyphSet = new Set(alphabet);
+  if (new Set(glyphValues).size !== glyphValues.length || glyphValues.some((value) => !validGlyphSet.has(value)) || glyphValues.length !== Math.min(10, alphabet.length)) {
+    return NextResponse.json({ error: "Selección de glifos inválida." }, { status: 400 });
+  }
   const alphabetString = glyphValues.join("");
   if (!isValidCode(humanSecret, alphabetString)) return NextResponse.json({ error: "El código elegido no pertenece a los glifos de esta partida. Volvé a elegirlo." }, { status: 400 });
 
