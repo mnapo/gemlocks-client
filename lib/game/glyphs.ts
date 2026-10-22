@@ -40,7 +40,7 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
       { id: "emoji-fire", label: "Fuego", value: "🔥" },
       { id: "emoji-moon", label: "Luna", value: "🌙" },
       { id: "emoji-star", label: "Estrella", value: "⭐" },
-      { id: "emoji-heart", label: "Corazón", value: "❤️" },
+      { id: "emoji-heart", label: "Corazón", value: "❤" },
       { id: "emoji-cat", label: "Gato", value: "🐱" },
       { id: "emoji-unicorn", label: "Unicornio", value: "🦄" },
       { id: "emoji-sparkles", label: "Destellos", value: "✨" },
