@@ -5,7 +5,7 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { randomUUID } from "crypto";
 import { signGameId, setGameCookie } from "@/lib/game/session";
-import { GLYPH_SETS, type GlyphSetId } from "@/lib/game/glyphs";
+import { GLYPH_SETS, sampleGlyphValues, type GlyphSetId } from "@/lib/game/glyphs";
 
 export async function POST(req: NextRequest) {
   const sessionToken = req.cookies.get(SESSION_COOKIE)?.value;
@@ -22,8 +22,10 @@ export async function POST(req: NextRequest) {
   if (!selectedSet) return NextResponse.json({ error: "Set de glifos inválido" }, { status: 400 });
 
   const alphabet = selectedSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
-  const alphabetString = alphabet.join("");
-  if (!isValidCode(humanSecret, alphabetString)) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
+  if (!isValidCode(humanSecret, alphabet.join(""))) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
+  const glyphValues = alphabet.length > 10 ? sampleGlyphValues(glyphSet) : alphabet;
+  const alphabetString = glyphValues.join("");
+  if (!isValidCode(humanSecret, alphabetString)) return NextResponse.json({ error: "El código elegido no pertenece a los glifos de esta partida. Volvé a elegirlo." }, { status: 400 });
 
   const client = getAdminClient();
   const botItemIds: Record<number, string> = { 2: "bot-byte", 3: "bot-nexus", 4: "bot-oracle", 5: "bot-singularity" };
@@ -54,11 +56,12 @@ export async function POST(req: NextRequest) {
     machine_guesses: [],
     first_winner: null,
     final_turn_used: false,
+    glyph_values: glyphValues,
     status: "active",
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const res = NextResponse.json({ ok: true, gameId, starter, humanSecret, glyphSet });
+  const res = NextResponse.json({ ok: true, gameId, starter, humanSecret, glyphSet, glyphValues });
   setGameCookie(res, await signGameId(gameId));
   return res;
 }
