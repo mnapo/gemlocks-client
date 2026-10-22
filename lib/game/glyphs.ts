@@ -101,12 +101,13 @@ export const GLYPHS_PER_GAME = 10;
 
 export function sampleGlyphValues(id: GlyphSetId, random: () => number = Math.random): string[] {
   const values = GLYPH_SETS[id].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
+  if (values.length <= GLYPHS_PER_GAME) return values;
   const pool = [...values];
-  for (let i = 0; i < Math.min(GLYPHS_PER_GAME, pool.length); i++) {
+  for (let i = 0; i < GLYPHS_PER_GAME; i++) {
     const j = i + Math.floor(random() * (pool.length - i));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, Math.min(GLYPHS_PER_GAME, pool.length));
+  return pool.slice(0, GLYPHS_PER_GAME);
 }
 
 export function getGlyphSet(id: GlyphSetId): GlyphSet {
