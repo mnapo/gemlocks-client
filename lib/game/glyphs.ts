@@ -39,6 +39,12 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
       { id: "emoji-lightning", label: "Rayo", value: "⚡" },
       { id: "emoji-fire", label: "Fuego", value: "🔥" },
       { id: "emoji-moon", label: "Luna", value: "🌙" },
+      { id: "emoji-star", label: "Estrella", value: "⭐" },
+      { id: "emoji-heart", label: "Corazón", value: "❤️" },
+      { id: "emoji-cat", label: "Gato", value: "🐱" },
+      { id: "emoji-unicorn", label: "Unicornio", value: "🦄" },
+      { id: "emoji-sparkles", label: "Destellos", value: "✨" },
+      { id: "emoji-planet", label: "Planeta", value: "🪐" },
     ],
   },
   runes: {
@@ -55,6 +61,20 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
       { id: "rune-wunjo", label: "Wunjo", value: "ᚹ", asset: "/glyphs/runes.svg#rune-wunjo" },
       { id: "rune-hagalaz", label: "Hagalaz", value: "ᚺ", asset: "/glyphs/runes.svg#rune-hagalaz" },
       { id: "rune-nauthiz", label: "Nauthiz", value: "ᚾ", asset: "/glyphs/runes.svg#rune-nauthiz" },
+      { id: "rune-isa", label: "Isa", value: "ᛁ", asset: "/glyphs/runes.svg#rune-isa" },
+      { id: "rune-jera", label: "Jera", value: "ᛃ", asset: "/glyphs/runes.svg#rune-jera" },
+      { id: "rune-eihwaz", label: "Eihwaz", value: "ᛇ", asset: "/glyphs/runes.svg#rune-eihwaz" },
+      { id: "rune-perthro", label: "Perthro", value: "ᛈ", asset: "/glyphs/runes.svg#rune-perthro" },
+      { id: "rune-algiz", label: "Algiz", value: "ᛉ", asset: "/glyphs/runes.svg#rune-algiz" },
+      { id: "rune-sowilo", label: "Sowilo", value: "ᛊ", asset: "/glyphs/runes.svg#rune-sowilo" },
+      { id: "rune-tiwaz", label: "Tiwaz", value: "ᛏ", asset: "/glyphs/runes.svg#rune-tiwaz" },
+      { id: "rune-berkano", label: "Berkano", value: "ᛒ", asset: "/glyphs/runes.svg#rune-berkano" },
+      { id: "rune-ehwaz", label: "Ehwaz", value: "ᛖ", asset: "/glyphs/runes.svg#rune-ehwaz" },
+      { id: "rune-mannaz", label: "Mannaz", value: "ᛗ", asset: "/glyphs/runes.svg#rune-mannaz" },
+      { id: "rune-laguz", label: "Laguz", value: "ᛚ", asset: "/glyphs/runes.svg#rune-laguz" },
+      { id: "rune-ingwaz", label: "Ingwaz", value: "ᛜ", asset: "/glyphs/runes.svg#rune-ingwaz" },
+      { id: "rune-dagaz", label: "Dagaz", value: "ᛞ", asset: "/glyphs/runes.svg#rune-dagaz" },
+      { id: "rune-othala", label: "Othala", value: "ᛟ", asset: "/glyphs/runes.svg#rune-othala" },
     ],
   },
   zodiac: {
@@ -71,9 +91,23 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
       { id: "zodiac-scorpio", label: "Escorpio", value: "♏" },
       { id: "zodiac-sagittarius", label: "Sagitario", value: "♐" },
       { id: "zodiac-capricorn", label: "Capricornio", value: "♑" },
+      { id: "zodiac-aquarius", label: "Acuario", value: "♒" },
+      { id: "zodiac-pisces", label: "Piscis", value: "♓" },
     ],
   },
 };
+
+export const GLYPHS_PER_GAME = 10;
+
+export function sampleGlyphValues(id: GlyphSetId, random: () => number = Math.random): string[] {
+  const values = GLYPH_SETS[id].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
+  const pool = [...values];
+  for (let i = 0; i < Math.min(GLYPHS_PER_GAME, pool.length); i++) {
+    const j = i + Math.floor(random() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(GLYPHS_PER_GAME, pool.length));
+}
 
 export function getGlyphSet(id: GlyphSetId): GlyphSet {
   return GLYPH_SETS[id];
