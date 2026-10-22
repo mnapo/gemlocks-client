@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeftCircle, Bot, Check, Coins, Gem, LockKeyhole, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
-import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, type GlyphSetId } from "@/lib/game/glyphs";
+import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, sampleGlyphValues, type GlyphSetId } from "@/lib/game/glyphs";
 import { GAME_BOTS } from "@/lib/game/bots";
 import { useI18n } from "@/components/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -49,6 +49,7 @@ function GlyphSelector({
   value,
   onChange,
   glyphSetId = DEFAULT_GLYPH_SET_ID,
+  glyphValues,
   discardMode = false,
   onToggleDiscard,
   discarded = new Set<string>(),
@@ -57,6 +58,7 @@ function GlyphSelector({
   value: string;
   onChange: (value: string) => void;
   glyphSetId?: GlyphSetId;
+  glyphValues?: string[];
   discardMode?: boolean;
   onToggleDiscard?: () => void;
   onDiscard?: (glyph: string) => void;
@@ -64,7 +66,7 @@ function GlyphSelector({
 }) {
   const { t } = useI18n();
   const glyphSet = getGlyphSet(glyphSetId);
-  const glyphs = glyphSet.glyphs;
+  const glyphs = glyphValues?.length ? glyphSet.glyphs.filter((glyph) => glyph.value && glyphValues.includes(glyph.value)) : glyphSet.glyphs;
   const selectedGlyphs = Array.from(value);
 
   function addGlyph(glyph: string) {
@@ -169,6 +171,7 @@ export default function GamePage() {
   const [coinsBalance, setCoinsBalance] = useState<number | null>(null);
   const [purchasingBot, setPurchasingBot] = useState<number | null>(null);
   const [glyphSetId, setGlyphSetId] = useState<GlyphSetId>(DEFAULT_GLYPH_SET_ID);
+  const [gameGlyphValues, setGameGlyphValues] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("difficulty");
   const [guess, setGuess] = useState("");
   const [mySecret, setMySecret] = useState("");
@@ -250,6 +253,7 @@ export default function GamePage() {
         setDifficulty(state.difficulty);
         const restoredGlyphSet = getGlyphSetForCode(state.humanSecret);
         if (restoredGlyphSet) setGlyphSetId(restoredGlyphSet.id);
+        setGameGlyphValues(Array.isArray(state.glyphValues) && state.glyphValues.length ? state.glyphValues : (restoredGlyphSet?.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value)) ?? []));
         setStarter(state.starter);
         setMySecret(state.humanSecret);
         setHumanResults(state.humanGuesses ?? []);
@@ -312,10 +316,10 @@ export default function GamePage() {
   async function startGame() {
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, humanSecret: mySecret }) });
+      const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, glyphValues: gameGlyphValues, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? t("startMatchError")); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setCoinsReward(0); setCoinsBalance(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); setCoinsReward(0); setCoinsBalance(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setGameGlyphValues(data.glyphValues ?? gameGlyphValues); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError(t("networkError")); }
     finally { setLoading(false); }
@@ -386,7 +390,7 @@ export default function GamePage() {
   function continueAfterOpponentResult() { setLastResult(null); setPhase("player-turn"); }
   function beginFinalTurn() { setLastResult(null); setPhase(finalActor === "human" ? "player-turn" : "thinking"); }
 
-  if (phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">{t("back")}</Link></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">{t("gameMode")}</p>{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">{t("codeTitle")}</h1><p className="mt-3 text-sm leading-6 text-white/40">{t("codePrompt")}</p><GlyphSelector value={mySecret} onChange={setMySecret} glyphSetId={glyphSetId}/>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading || Array.from(mySecret).length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? t("starting") : t("startGame")}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">{t("difficultyTitle")}</h1><p className="mt-3 text-sm leading-6 text-white/40">{t("difficultyPrompt")}</p><div className="mb-3 flex items-center justify-end gap-1.5 text-xs text-cyan-300/80"><Gem size={14} /> {gems} {gems === 1 ? t("gemOne") : t("gemMany")}</div><div className="mt-4 grid gap-3">{DIFFICULTIES.map((option) => { const bot = GAME_BOTS.find((entry) => entry.level === option.level)!; const selected = difficulty === option.level; const unlocked = unlockedLevels.includes(option.level); return <div key={option.level} className={"border transition " + (selected && unlocked ? "border-white/40 bg-white/[0.07]" : unlocked ? "border-white/10 bg-white/[0.02]" : "border-white/5 bg-white/[0.015] opacity-75")}>{!unlocked ? <div className="flex min-h-[76px] items-center gap-3 px-3 py-2 sm:px-4"><img src={bot.avatar} alt="" className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14" /><span className="min-w-0 flex-1 text-sm font-medium">{bot.name}</span><button type="button" disabled={purchasingBot !== null} onClick={() => unlockBot(option.level)} className="flex shrink-0 items-center gap-1.5 border border-cyan-300/30 px-3 py-2 text-xs text-cyan-200 transition hover:border-cyan-200/60 disabled:opacity-40 sm:px-4">{purchasingBot === option.level ? t("startingUnlock") : <><Gem size={13} /> {bot.price} · {t("unlock")}</>}</button></div> : <button type="button" onClick={() => setDifficulty(option.level)} className="flex w-full items-center gap-3 p-3 text-left sm:p-4"><img src={bot.avatar} alt="" className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16" /><span className="min-w-0 flex-1"><span className="block text-sm font-medium">{bot.name}</span><span className="mt-1 block text-xs text-white/55">{option.name}</span><span className="mt-1 block text-xs leading-5 text-white/35">{option.description}</span></span><span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2.5 w-2.5 rounded-full bg-white" />}</span></button>}</div>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => setPhase("code-select")} disabled={!unlockedLevels.includes(difficulty)} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{t("select")}</button></>}</section></div></main>;
+  if (phase === "code-select" || phase === "difficulty") return <main className="min-h-screen bg-[#0b0b0b] px-6 text-[#f5f5f5]"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><Link href="/" className="text-sm font-medium tracking-tight">gemlocks</Link><Link href="/" className="text-xs text-white/40 hover:text-white/75">{t("back")}</Link></header><section key={phase} className="phase-enter flex flex-1 flex-col justify-center py-12"><p className="text-xs uppercase tracking-[0.3em] text-white/35">{t("gameMode")}</p>{phase === "code-select" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">{t("codeTitle")}</h1><p className="mt-3 text-sm leading-6 text-white/40">{t("codePrompt")}</p><GlyphSelector value={mySecret} onChange={setMySecret} glyphSetId={glyphSetId} glyphValues={gameGlyphValues}/>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={startGame} disabled={loading || Array.from(mySecret).length !== 4} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? t("starting") : t("startGame")}</button></>}{phase === "difficulty" && <><h1 className="mt-4 text-3xl font-medium tracking-tight">{t("difficultyTitle")}</h1><p className="mt-3 text-sm leading-6 text-white/40">{t("difficultyPrompt")}</p><div className="mb-3 flex items-center justify-end gap-1.5 text-xs text-cyan-300/80"><Gem size={14} /> {gems} {gems === 1 ? t("gemOne") : t("gemMany")}</div><div className="mt-4 grid gap-3">{DIFFICULTIES.map((option) => { const bot = GAME_BOTS.find((entry) => entry.level === option.level)!; const selected = difficulty === option.level; const unlocked = unlockedLevels.includes(option.level); return <div key={option.level} className={"border transition " + (selected && unlocked ? "border-white/40 bg-white/[0.07]" : unlocked ? "border-white/10 bg-white/[0.02]" : "border-white/5 bg-white/[0.015] opacity-75")}>{!unlocked ? <div className="flex min-h-[76px] items-center gap-3 px-3 py-2 sm:px-4"><img src={bot.avatar} alt="" className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14" /><span className="min-w-0 flex-1 text-sm font-medium">{bot.name}</span><button type="button" disabled={purchasingBot !== null} onClick={() => unlockBot(option.level)} className="flex shrink-0 items-center gap-1.5 border border-cyan-300/30 px-3 py-2 text-xs text-cyan-200 transition hover:border-cyan-200/60 disabled:opacity-40 sm:px-4">{purchasingBot === option.level ? t("startingUnlock") : <><Gem size={13} /> {bot.price} · {t("unlock")}</>}</button></div> : <button type="button" onClick={() => setDifficulty(option.level)} className="flex w-full items-center gap-3 p-3 text-left sm:p-4"><img src={bot.avatar} alt="" className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16" /><span className="min-w-0 flex-1"><span className="block text-sm font-medium">{bot.name}</span><span className="mt-1 block text-xs text-white/55">{option.name}</span><span className="mt-1 block text-xs leading-5 text-white/35">{option.description}</span></span><span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-full border " + (selected ? "border-white/80" : "border-white/25")}>{selected && <span className="h-2.5 w-2.5 rounded-full bg-white" />}</span></button>}</div>; })}</div>{error && <p className="mt-4 text-sm text-red-400">{error}</p>}<button type="button" onClick={() => { setMySecret(""); setGameGlyphValues(sampleGlyphValues(glyphSetId)); setPhase("code-select"); }} disabled={!unlockedLevels.includes(difficulty)} className="mt-8 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{t("select")}</button></>}</section></div></main>;
 
   const inMatch = !["coin-toss", "coin-result"].includes(phase);
   return <main className="min-h-screen overflow-x-clip bg-[#0b0b0b] px-4 text-[#f5f5f5] sm:px-6"><div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col"><header className="flex items-center justify-between border-b border-white/10 py-5"><button type="button" onClick={requestClose} className="text-sm font-medium tracking-tight">gemlocks</button><div className="flex items-center gap-3 text-xs"><div className="flex items-center gap-2"><img src={GAME_BOTS.find((bot) => bot.level === difficulty)?.avatar} alt="" className="h-8 w-8 object-contain" /><span className="text-right"><span className="block text-white/80">{GAME_BOTS.find((bot) => bot.level === difficulty)?.name}</span><span className="block text-white/40">{t("level")} {difficulty}</span></span></div><span className="text-white/20">|</span><button type="button" onClick={requestClose} className="text-red-400/70 transition hover:text-red-400">{t("abandon")}</button></div></header><section key={phase} className="phase-enter flex min-w-0 flex-1 flex-col py-7 sm:py-10">
