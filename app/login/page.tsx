@@ -33,7 +33,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      router.push("/game");
       router.refresh();
     } catch {
       setError(t("connectionError"));
