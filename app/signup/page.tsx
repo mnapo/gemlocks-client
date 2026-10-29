@@ -63,7 +63,7 @@ export default function SignupPage() {
         setServerError(data.error ?? t("signupError"));
         return;
       }
-      router.push("/");
+      router.push("/game");
       router.refresh();
     } catch {
       setServerError(t("connectionError"));
