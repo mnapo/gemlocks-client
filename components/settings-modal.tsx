@@ -18,8 +18,9 @@ type Props = {
 const themes: StoreItem[] = [
   { id: "dark", name: "Dark", preview: "theme-dark" },
   { id: "theme-light", name: "Light", preview: "theme-light" },
-  { id: "theme-pink", name: "Pink", preview: "theme-pink" },
+  { id: "theme-pink", name: "Floral", preview: "theme-floral" },
   { id: "theme-ocean", name: "Ocean", preview: "theme-ocean" },
+  { id: "theme-high-energy", name: "High Energy", preview: "theme-high-energy" },
 ];
 
 export default function SettingsModal({ username, owned, activeGlyphSet, activeAvatar, activeTheme, activeChest }: Props) {
