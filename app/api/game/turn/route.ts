@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
 
   let coinsReward = 0;
   let coinsBalance: number | undefined;
+  let progression: { experienceReward: number; levelUp: boolean; levelRewardCoins: number; levelRewardGems: number; level: number; experience: number } | undefined;
   const nextState: GameState = { ...state, currentPlayer: actor === "human" ? "machine" : "human", humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed };
   if (status === "playing") {
     await touchGame(state.gameId, state.userId, nextState);
@@ -65,16 +66,26 @@ export async function POST(req: NextRequest) {
     if (!finished) {
       return NextResponse.json({ error: "La partida no pudo finalizarse." }, { status: 500 });
     }
-    if (status === "won") {
-      const admin = getAdminClient();
-      const { data: rewardRecord } = await admin.from("game_results").select("coins_reward").eq("game_id", state.gameId).eq("user_id", state.userId).maybeSingle();
-      const { data: profile } = await admin.from("app_users").select("coins").eq("id", state.userId).maybeSingle();
-      if (rewardRecord) coinsReward = Number(rewardRecord.coins_reward ?? 0);
-      if (profile) coinsBalance = Number(profile.coins ?? 0);
+    const admin = getAdminClient();
+    const { data: rewardRecord } = await admin.from("game_results")
+      .select("coins_reward, experience_reward, level_up, level_reward_coins, level_reward_gems, resulting_level, resulting_experience")
+      .eq("game_id", state.gameId).eq("user_id", state.userId).maybeSingle();
+    const { data: profile } = await admin.from("app_users").select("coins, level, experience").eq("id", state.userId).maybeSingle();
+    if (rewardRecord) {
+      coinsReward = Number(rewardRecord.coins_reward ?? 0);
+      progression = {
+        experienceReward: Number(rewardRecord.experience_reward ?? 0),
+        levelUp: Boolean(rewardRecord.level_up),
+        levelRewardCoins: Number(rewardRecord.level_reward_coins ?? 0),
+        levelRewardGems: Number(rewardRecord.level_reward_gems ?? 0),
+        level: Number(rewardRecord.resulting_level ?? profile?.level ?? 1),
+        experience: Number(rewardRecord.resulting_experience ?? profile?.experience ?? 0),
+      };
     }
+    if (profile) coinsBalance = Number(profile.coins ?? 0);
   }
 
-  const res = NextResponse.json({ status, actor, result: result(attack), ...(status === "won" ? { coinsReward, ...(coinsBalance !== undefined ? { coinsBalance } : {}) } : {}), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
+  const res = NextResponse.json({ status, actor, result: result(attack), ...(status === "won" ? { coinsReward } : {}), ...(coinsBalance !== undefined ? { coinsBalance } : {}), ...(progression ? { progression } : {}), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
   if (status === "won" || status === "lost" || status === "draw") {
     clearGameCookie(res);
   } else {
