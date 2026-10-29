@@ -11,6 +11,7 @@ export type GameState = {
   humanSecret: string;
   machineSecret: string;
   difficulty: number;
+  glyphValues: string[];
   starter: "human" | "machine";
   currentPlayer: "human" | "machine";
   humanGuesses: { guess: string; perfect: number; regular: number }[];
@@ -48,7 +49,7 @@ export async function loadGame(req: NextRequest) {
 
   let query = getAdminClient()
     .from("game_sessions")
-    .select("game_id,user_id,human_secret,machine_secret,difficulty,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
+    .select("game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
     .eq("user_id", user.sub);
 
   if (requestedGameId) {
@@ -68,6 +69,7 @@ export async function loadGame(req: NextRequest) {
       humanSecret: data.human_secret,
       machineSecret: data.machine_secret,
       difficulty: data.difficulty,
+      glyphValues: Array.isArray(data.glyph_values) && data.glyph_values.length ? data.glyph_values as string[] : [],
       starter: data.starter as "human" | "machine",
       currentPlayer: data.current_player as "human" | "machine",
       humanGuesses: data.human_guesses as GameState["humanGuesses"],

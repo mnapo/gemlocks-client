@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ active: true, state: {
     gameId: game.state.gameId,
     difficulty: game.state.difficulty,
+    glyphValues: game.state.glyphValues,
     starter: game.state.starter,
     currentPlayer: game.state.currentPlayer,
     humanSecret: game.state.humanSecret,
