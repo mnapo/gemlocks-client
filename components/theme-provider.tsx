@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const THEMES = new Set(["dark", "light", "pink", "ocean"]);
+const THEMES = new Set(["dark", "light", "floral", "pink", "ocean", "high-energy"]);
 
 function normalizeTheme(value: string | null | undefined) {
   const normalized = value?.startsWith("theme-") ? value.slice(6) : value;
