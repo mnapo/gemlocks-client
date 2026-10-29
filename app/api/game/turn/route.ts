@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const state = game.state;
   const glyphSet = getGlyphSetForCode(state.humanSecret);
   if (!glyphSet) return NextResponse.json({ error: "Set de glifos inválido" }, { status: 500 });
-  const alphabet = glyphSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value)).join("");
+  const alphabet = (state.glyphValues.length ? state.glyphValues : glyphSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
 
   if (actor !== state.currentPlayer) return NextResponse.json({ error: "No es el turno de ese jugador" }, { status: 409 });
 
