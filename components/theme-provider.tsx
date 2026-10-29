@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 
-const THEMES = new Set(["dark", "light", "pink", "ocean"]);
+const THEMES = new Set(["dark", "light", "floral", "pink", "ocean", "high-energy"]);
 
 function normalizeTheme(value: string | null | undefined) {
   const normalized = value?.startsWith("theme-") ? value.slice(6) : value;
-  return normalized && THEMES.has(normalized) ? normalized : "dark";
+  const resolved = normalized === "pink" ? "floral" : normalized;
+  return resolved && THEMES.has(resolved) ? resolved : "dark";
 }
 
 export default function ThemeProvider() {

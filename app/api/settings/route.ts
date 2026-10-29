@@ -9,7 +9,7 @@ const glyphItemIds: Record<string, GlyphSetId> = {
   "glyphs-zodiac": "zodiac",
 };
 const avatarIds = ["avatar-pelota", "avatar-flores", "avatar-guitarra", "avatar-paisaje", "avatar-robot", "avatar-elfo", "avatar-elfa", "avatar-doctor", "avatar-doctora", "avatar-mago", "avatar-maga"];
-const themeIds = ["theme-light", "theme-pink", "theme-ocean"];
+const themeIds = ["theme-light", "theme-pink", "theme-ocean", "theme-high-energy"];
 const chestIds = ["chest-stone", "chest-pirate", "chest-futuristic"];
 
 export async function POST(req: NextRequest) {
