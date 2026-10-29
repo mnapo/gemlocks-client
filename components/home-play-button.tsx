@@ -14,7 +14,7 @@ export default function HomePlayButton() {
     fetch("/api/game/current", { cache: "no-store" }).then(res => res.json().catch(() => null)).then(data => { if (mounted) setActive(Boolean(data?.active)); }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
-  return <Link href="/game" className="home-action-card">
+  return <Link href="/match" className="home-action-card">
     <span className="home-action-icon home-action-play"><Swords size={40} strokeWidth={1.5} /></span>
     <span className="mt-3 text-sm font-medium">{loading ? t("play") : active ? t("resume") : t("play")}</span>
   </Link>;
