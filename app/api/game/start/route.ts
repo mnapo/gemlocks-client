@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (!isValidCode(humanSecret, alphabet.join(""))) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
   const glyphValues = requestedGlyphValues.length ? requestedGlyphValues : (alphabet.length > 10 ? sampleGlyphValues(glyphSet) : alphabet);
   const validGlyphSet = new Set(alphabet);
-  if (new Set(glyphValues).size !== glyphValues.length || glyphValues.some((value) => !validGlyphSet.has(value)) || glyphValues.length !== Math.min(10, alphabet.length)) {
+  if (new Set(glyphValues).size !== glyphValues.length || glyphValues.some((value: string) => !validGlyphSet.has(value)) || glyphValues.length !== Math.min(10, alphabet.length)) {
     return NextResponse.json({ error: "Selección de glifos inválida." }, { status: 400 });
   }
   const alphabetString = glyphValues.join("");
