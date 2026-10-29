@@ -79,6 +79,7 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
             <div className="flex h-14 w-full items-center justify-center overflow-hidden text-xl">
               {item.image ? <img src={item.image} alt="" className="h-14 w-14 object-contain" /> : item.preview?.startsWith("theme-") ? <span className={"h-12 w-12 border border-white/10 " + (item.preview === "theme-light" ? "bg-[linear-gradient(135deg,#f5f5f5_0_33%,#d9d9d9_33%_66%,#fff_66%)]" : item.preview === "theme-floral" ? "bg-[linear-gradient(135deg,#fff1f5_0_33%,#e8a0c0_33%_66%,#713c59_66%)]" : item.preview === "theme-high-energy" ? "bg-[linear-gradient(135deg,#10152f_0_33%,#00e5ff_33%_66%,#ff2bd6_66%)]" : item.preview === "theme-ocean" ? "bg-[linear-gradient(135deg,#e9f8ff_0_33%,#58b9d8_33%_66%,#173b55_66%)]" : "bg-[linear-gradient(135deg,#0b0b0b_0_33%,#27272a_33%_66%,#f5f5f5_66%)]")} /> : <span className="text-center text-sm">{item.preview ?? "—"}</span>}
             </div>
+            <span className="text-xs text-white/70">{item.name}</span>
             {selectedIndex === items.findIndex((candidate) => candidate.id === item.id) && <span className="h-1 w-5 bg-white/80" />}
           </button>)}
         </div>
