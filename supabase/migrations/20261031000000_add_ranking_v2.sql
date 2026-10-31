@@ -16,38 +16,52 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
-SECURITY DEFINER
 SET search_path TO ''
 AS $function$
-  WITH ranked_players AS (
+  WITH ranked AS (
     SELECT
+      ROW_NUMBER() OVER (
+        ORDER BY
+          (u.victories * 3 + u.draws) DESC,
+          u.victories DESC,
+          u.draws DESC,
+          u.defeats ASC,
+          u.name ASC,
+          u.id ASC
+      ) AS rank_position,
       u.id,
       u.name,
       u.active_avatar,
-      COALESCE(u.level, 1)::integer AS level,
-      COALESCE(u.coins, 0)::integer AS coins,
-      COALESCE(u.victories, 0)::integer AS victories,
-      COALESCE(u.defeats, 0)::integer AS defeats,
-      COALESCE(u.draws, 0)::integer AS draws,
-      (COALESCE(u.victories, 0) * 3 + COALESCE(u.draws, 0))::integer AS score
+      u.level,
+      u.coins,
+      u.victories,
+      u.defeats,
+      u.draws,
+      (u.victories * 3 + u.draws)::integer AS score
     FROM public.app_users AS u
-  ),
-  numbered_players AS (
-    SELECT
-      ROW_NUMBER() OVER (
-        ORDER BY score DESC, victories DESC, draws DESC, id ASC
-      ) AS rank_position,
-      *
-    FROM ranked_players
   )
   SELECT
-    rank_position, id, name, active_avatar, level, coins,
-    victories, defeats, draws, score
-  FROM numbered_players
-  ORDER BY rank_position
-  LIMIT GREATEST(1, LEAST(COALESCE(p_page_size, 10), 100))
-  OFFSET (GREATEST(COALESCE(p_page, 1), 1) - 1)
-    * GREATEST(1, LEAST(COALESCE(p_page_size, 10), 100));
+    ranked.rank_position,
+    ranked.id,
+    ranked.name,
+    ranked.active_avatar,
+    ranked.level,
+    ranked.coins,
+    ranked.victories,
+    ranked.defeats,
+    ranked.draws,
+    ranked.score
+  FROM ranked
+  WHERE ranked.rank_position > (
+    (GREATEST(COALESCE(p_page, 1), 1) - 1)
+    * LEAST(GREATEST(COALESCE(p_page_size, 10), 1), 100)
+  )
+  AND ranked.rank_position <= (
+    (GREATEST(COALESCE(p_page, 1), 1) - 1)
+    * LEAST(GREATEST(COALESCE(p_page_size, 10), 1), 100)
+    + LEAST(GREATEST(COALESCE(p_page_size, 10), 1), 100)
+  )
+  ORDER BY ranked.rank_position;
 $function$;
 
 REVOKE ALL ON FUNCTION public.get_user_ranking_v2(integer, integer) FROM PUBLIC, anon, authenticated;

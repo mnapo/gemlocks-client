@@ -19,6 +19,7 @@ type Player = {
 export default function RankingPage() {
   const { t } = useI18n();
   const [players, setPlayers] = useState<Player[]>([]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -31,12 +32,13 @@ export default function RankingPage() {
         if (!response.ok) throw new Error("Ranking request failed");
         return response.json();
       })
-      .then((data) => setPlayers(data.players))
+      .then((data) => {
+        setPlayers(data.players);
+        setHasNextPage(data.hasNextPage);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [page]);
-
-  const canNext = players.length === 10;
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] px-3 text-[#f5f5f5] sm:px-6">
@@ -84,7 +86,7 @@ export default function RankingPage() {
           <div className="mt-5 flex items-center justify-between">
             <button onClick={() => setPage((current) => current - 1)} disabled={page === 1 || loading} className="px-3 py-2 text-xs text-white/40 hover:text-white disabled:opacity-20">{t("backPage")}</button>
             <span className="text-xs text-white/30">{t("page")} {page}</span>
-            <button onClick={() => setPage((current) => current + 1)} disabled={!canNext || loading} className="px-3 py-2 text-xs text-white/40 hover:text-white disabled:opacity-20">{t("nextPage")}</button>
+            <button onClick={() => setPage((current) => current + 1)} disabled={!hasNextPage || loading} className="px-3 py-2 text-xs text-white/40 hover:text-white disabled:opacity-20">{t("nextPage")}</button>
           </div>
         </section>
       </div>
