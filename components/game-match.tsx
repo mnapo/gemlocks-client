@@ -152,21 +152,25 @@ function History({
   function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
     if (placement !== "floating") return;
     event.preventDefault();
-    const rect = event.currentTarget.parentElement?.getBoundingClientRect();
-    dragOffset.current = { x: event.clientX - (rect?.left ?? position.x), y: event.clientY - (rect?.top ?? position.y) };
+    if ((event.target as HTMLElement).closest("button")) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const handle = (event.target as HTMLElement).closest("[data-history-drag-handle]");
+    const nearEdge = event.clientX - rect.left <= 12 || rect.right - event.clientX <= 12 || event.clientY - rect.top <= 12 || rect.bottom - event.clientY <= 12;
+    if (!handle && !nearEdge) return;
+    dragOffset.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
   function drag(event: ReactPointerEvent<HTMLDivElement>) {
     if (placement !== "floating" || (event.buttons === 0 && event.pointerType !== "touch")) return;
     const width = Math.min(320, window.innerWidth - 24);
-    const height = event.currentTarget.parentElement?.getBoundingClientRect().height ?? 300;
+    const height = event.currentTarget.getBoundingClientRect().height ?? 300;
     setPosition({
       x: Math.max(12, Math.min(window.innerWidth - width - 12, event.clientX - dragOffset.current.x)),
       y: Math.max(12, Math.min(window.innerHeight - Math.min(height, window.innerHeight - 24) - 12, event.clientY - dragOffset.current.y)),
     });
   }
   const floatingStyle = placement === "floating" ? { position: "fixed" as const, left: position.x < 0 ? undefined : position.x, right: position.x < 0 ? 16 : undefined, top: position.y, width: "min(320px, calc(100vw - 24px))", maxHeight: "calc(100vh - 24px)", zIndex: 40 } : undefined;
-  return <div style={floatingStyle} className={placement === "left" ? "fixed left-3 top-36 z-30 w-[min(290px,calc(100vw-24px))] max-h-[calc(100vh-160px)] overflow-y-auto border border-white/10 bg-[#101010] p-3 shadow-2xl xl:left-[max(16px,calc(50%-600px))]" : placement === "floating" ? "overflow-auto border border-white/20 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-md" : "mt-12"}>
+  return <div style={floatingStyle} className={placement === "left" ? "fixed left-3 top-36 z-30 w-[min(290px,calc(100vw-24px))] max-h-[calc(100vh-160px)] overflow-y-auto border border-white/10 bg-[#101010] p-3 shadow-2xl xl:left-[max(16px,calc(50%-600px))]" : placement === "floating" ? "cursor-move touch-none overflow-auto border border-white/20 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-md" : "mt-12"} onPointerDown={startDrag} onPointerMove={drag}>
     <div className="flex items-center justify-between border-b border-white/10 pb-3">
       <div className="flex min-w-0 items-center gap-2">
         {showControls && <div className="flex items-center gap-1">
@@ -177,7 +181,7 @@ function History({
             {placement === "floating" ? <Move size={15} strokeWidth={1.8}/> : <Maximize2 size={15} strokeWidth={1.8}/>}
           </button>
         </div>}
-        <div onPointerDown={startDrag} onPointerMove={drag} className={"text-xs uppercase tracking-[0.25em] text-white/30 " + (placement === "floating" ? "cursor-move touch-none select-none" : "")}>{t("history")}</div>
+        <div data-history-drag-handle className={"text-xs uppercase tracking-[0.25em] text-white/30 " + (placement === "floating" ? "select-none" : "")}>{t("history")}</div>
       </div>
       <div className="flex items-center gap-2">
         <button type="button" aria-label={t("previousPage")} onClick={() => setPage((v) => Math.max(0, v - 1))} disabled={currentPage === 0} className="text-white/35 hover:text-white disabled:opacity-20">‹</button>
