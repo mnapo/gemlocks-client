@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeftCircle, Bot, Check, Coins, Gem, LockKeyhole, Trash2, User, X } from "lucide-react";
+import { ArrowLeftCircle, Bot, Check, Coins, Gem, LockKeyhole, Maximize2, Move, Rows2, Columns2, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
 import TutorialModal from "@/components/tutorial-modal";
 import { DEFAULT_GLYPH_SET_ID, GLYPH_SETS, getGlyphSet, getGlyphSetForCode, sampleGlyphValues, type GlyphSetId } from "@/lib/game/glyphs";
@@ -128,18 +128,57 @@ function Coin() {
   return <div className="relative flex h-64 items-end justify-center"><div className="coin-shadow absolute bottom-8 h-4 w-20 rounded-[50%] bg-yellow-500/70 blur-sm" /><div className="coin-toss relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-4 border-yellow-700 bg-yellow-400 text-lg font-medium text-yellow-950 shadow-[0_0_35px_rgba(234,179,8,0.15)]"><span>G</span></div></div>;
 }
 
-function History({ humanResults, machineResults, humanGlyphSetId, opponentGlyphSetId }: { humanResults: Result[]; machineResults: Result[]; humanGlyphSetId: GlyphSetId; opponentGlyphSetId: GlyphSetId }) {
+function History({
+  humanResults, machineResults, humanGlyphSetId, opponentGlyphSetId, placement = "bottom", onPlacementChange, showControls = true,
+}: {
+  humanResults: Result[];
+  machineResults: Result[];
+  humanGlyphSetId: GlyphSetId;
+  opponentGlyphSetId: GlyphSetId;
+  placement?: "bottom" | "left" | "floating";
+  onPlacementChange?: (placement: "bottom" | "left" | "floating") => void;
+  showControls?: boolean;
+}) {
   const { t } = useI18n();
   const [tab, setTab] = useState<"human" | "machine">("human");
   const [page, setPage] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 150 });
+  const dragOffset = useRef({ x: 0, y: 0 });
   const results = tab === "human" ? humanResults : machineResults;
-  const pageCount = Math.max(1, Math.ceil(results.length / 4));
+  const pageCount = Math.max(1, Math.ceil(results.length / 6));
   const currentPage = Math.min(page, pageCount - 1);
-  const visible = [...results].reverse().slice(currentPage * 4, currentPage * 4 + 4);
+  const visible = [...results].reverse().slice(currentPage * 6, currentPage * 6 + 6);
   function changeTab(next: "human" | "machine") { setTab(next); setPage(0); }
-  return <div className="mt-12">
+  function startDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if (placement !== "floating") return;
+    event.preventDefault();
+    const rect = event.currentTarget.parentElement?.getBoundingClientRect();
+    dragOffset.current = { x: event.clientX - (rect?.left ?? position.x), y: event.clientY - (rect?.top ?? position.y) };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function drag(event: React.PointerEvent<HTMLDivElement>) {
+    if (placement !== "floating" || (event.buttons === 0 && event.pointerType !== "touch")) return;
+    const width = Math.min(320, window.innerWidth - 24);
+    const height = event.currentTarget.parentElement?.getBoundingClientRect().height ?? 300;
+    setPosition({
+      x: Math.max(12, Math.min(window.innerWidth - width - 12, event.clientX - dragOffset.current.x)),
+      y: Math.max(12, Math.min(window.innerHeight - Math.min(height, window.innerHeight - 24) - 12, event.clientY - dragOffset.current.y)),
+    });
+  }
+  const floatingStyle = placement === "floating" ? { position: "fixed" as const, left: position.x || undefined, top: position.y, width: "min(320px, calc(100vw - 24px))", maxHeight: "calc(100vh - 24px)", zIndex: 40 } : undefined;
+  return <div style={floatingStyle} className={placement === "left" ? "fixed left-3 top-36 z-30 w-[min(290px,calc(100vw-24px))] max-h-[calc(100vh-160px)] overflow-y-auto border border-white/10 bg-[#101010] p-3 shadow-2xl xl:left-[max(16px,calc(50%-600px))]" : placement === "floating" ? "overflow-auto border border-white/20 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-md" : "mt-12"}>
     <div className="flex items-center justify-between border-b border-white/10 pb-3">
-      <div className="text-xs uppercase tracking-[0.25em] text-white/30">{t("history")}</div>
+      <div className="flex min-w-0 items-center gap-2">
+        {showControls && <div className="flex items-center gap-1">
+          <button type="button" title={placement === "left" ? "Volver a la posición original" : "Mover a la izquierda"} aria-label={placement === "left" ? "Volver a la posición original" : "Mover a la izquierda"} onClick={() => onPlacementChange?.(placement === "left" ? "bottom" : "left")} className="flex h-7 w-7 items-center justify-center text-white/45 transition hover:bg-white/10 hover:text-white">
+            {placement === "left" ? <Rows2 size={16} strokeWidth={1.8}/> : <Columns2 size={16} strokeWidth={1.8}/>}
+          </button>
+          <button type="button" title={placement === "floating" ? "Acoplar historial" : "Liberar historial"} aria-label={placement === "floating" ? "Acoplar historial" : "Liberar historial"} onClick={() => onPlacementChange?.(placement === "floating" ? "bottom" : "floating")} className="flex h-7 w-7 items-center justify-center text-white/45 transition hover:bg-white/10 hover:text-white">
+            {placement === "floating" ? <Move size={15} strokeWidth={1.8}/> : <Maximize2 size={15} strokeWidth={1.8}/>}
+          </button>
+        </div>}
+        <div onPointerDown={startDrag} onPointerMove={drag} className={"text-xs uppercase tracking-[0.25em] text-white/30 " + (placement === "floating" ? "cursor-move touch-none select-none" : "")}>{t("history")}</div>
+      </div>
       <div className="flex items-center gap-2">
         <button type="button" aria-label={t("previousPage")} onClick={() => setPage((v) => Math.max(0, v - 1))} disabled={currentPage === 0} className="text-white/35 hover:text-white disabled:opacity-20">‹</button>
         <span className="min-w-5 text-center text-xs text-white/45">{currentPage + 1}</span>
@@ -150,7 +189,7 @@ function History({ humanResults, machineResults, humanGlyphSetId, opponentGlyphS
     </div>
     <div className="divide-y divide-white/10 border-b border-white/10">
       {visible.length === 0 && <div className="py-5 text-sm text-white/25">{t("historyEmpty")}</div>}
-      {visible.map((result, index) => <div key={currentPage * 4 + index} className="flex items-center justify-between py-3 text-sm"><span className="flex items-center gap-1">{Array.from(result.guess).map((value, glyphIndex) => { const setId = tab === "human" ? opponentGlyphSetId : humanGlyphSetId; const glyph = getGlyphSet(setId).glyphs.find((item) => item.value === value); return <span key={glyphIndex} className="flex h-7 w-7 items-center justify-center">{glyph ? <RenderGlyph glyph={glyph} className="h-6 w-6" /> : value}</span>; })}</span><span className="text-white/45">{result.perfect} {result.perfect === 1 ? t("perfectOne") : t("perfectMany")} · {result.regular} {result.regular === 1 ? t("regularOne") : t("regularMany")}</span></div>)}
+      {visible.map((result, index) => <div key={currentPage * 6 + index} className="flex items-center justify-between gap-2 py-2.5 text-sm"><span className="flex items-center gap-1">{Array.from(result.guess).map((value, glyphIndex) => { const setId = tab === "human" ? opponentGlyphSetId : humanGlyphSetId; const glyph = getGlyphSet(setId).glyphs.find((item) => item.value === value); return <span key={glyphIndex} className="flex h-7 w-7 items-center justify-center">{glyph ? <RenderGlyph glyph={glyph} className="h-6 w-6" /> : value}</span>; })}</span><span className="shrink-0 text-xs text-white/45">{result.perfect} {result.perfect === 1 ? t("perfectOne") : t("perfectMany")} · {result.regular} {result.regular === 1 ? t("regularOne") : t("regularMany")}</span></div>)}
     </div>
   </div>;
 }
@@ -190,6 +229,7 @@ export default function GamePage() {
   const [discarded, setDiscarded] = useState<Set<string>>(new Set());
   const [confirmClose, setConfirmClose] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [historyPlacement, setHistoryPlacement] = useState<"bottom" | "left" | "floating">("bottom");
 
   useEffect(() => {
     let active = true;
@@ -405,12 +445,12 @@ export default function GamePage() {
     {!inMatch && phase === "coin-toss" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">{t("toss")}</p><h1 className="mt-4 text-3xl font-medium">{t("whoStarts")}</h1><Coin /></div>}
     {!inMatch && phase === "coin-result" && <div className="flex flex-1 flex-col items-center justify-center text-center"><p className="text-xs uppercase tracking-[0.3em] text-white/35">{t("coinFinished")}</p><h1 className="mt-4 text-3xl font-medium">{starter === "human" ? t("coinHumanStart") : t("coinMachineStart")}</h1><p className="mt-4 text-sm text-white/40">{starter === "human" ? t("firstAttackHuman") : t("firstAttackMachine")}</p><button type="button" onClick={beginMatch} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{t("start")}</button></div>}
     {inMatch && <><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-white/35">{starter === "human" ? t("startedByHuman") : t("startedByMachine")}</p><h1 className="mt-3 text-3xl font-medium tracking-tight">{phase === "thinking" ? `${GAME_BOTS.find((bot) => bot.level === difficulty)?.name ?? "Bot"} ${t("thinking")}` : t(phaseTitle[phase as Exclude<Phase, "setup">])}</h1></div><div className="flex flex-col items-end gap-2 text-right text-xs text-white/30"><div className="flex items-center gap-2"><img src={activeAvatar ? `/store/avatars/${activeAvatar.replace("avatar-", "")}.svg` : "/store/avatars/predeterminado.svg"} alt="" className="h-7 w-7 shrink-0 rounded-full object-contain" /><div><div>{t("yourCode")}</div><div className="font-mono tracking-widest text-white/55">{mySecret}</div></div></div><div><div>{humanResults.length} {t("yourAttacks")}</div><div>{machineResults.length} {t("machineAttacks")}</div></div></div></div>
-      {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? t("finalDrawDesc") : t("chooseAttack")}</p><GlyphSelector value={guess} onChange={setGuess} glyphSetId={opponentGlyphSetId} glyphValues={opponentGlyphValues} discardMode={discardMode} discarded={discarded} onToggleDiscard={() => setDiscardMode((value) => !value)} onDiscard={(digit) => setDiscarded((current) => { const next = new Set(current); if (next.has(digit)) next.delete(digit); else next.add(digit); return next; })} /><button type="button" onClick={() => submitGuess({ preventDefault() {} } as FormEvent)} disabled={loading || Array.from(guess).length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? t("attacking") : t("attack")}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History humanResults={humanResults} machineResults={machineResults} humanGlyphSetId={glyphSetId} opponentGlyphSetId={opponentGlyphSetId}/></>}
+      {phase === "player-turn" && <><div className="mt-10"><p className="text-sm text-white/45">{finalActor === "human" ? t("finalDrawDesc") : t("chooseAttack")}</p><GlyphSelector value={guess} onChange={setGuess} glyphSetId={opponentGlyphSetId} glyphValues={opponentGlyphValues} discardMode={discardMode} discarded={discarded} onToggleDiscard={() => setDiscardMode((value) => !value)} onDiscard={(digit) => setDiscarded((current) => { const next = new Set(current); if (next.has(digit)) next.delete(digit); else next.add(digit); return next; })} /><button type="button" onClick={() => submitGuess({ preventDefault() {} } as FormEvent)} disabled={loading || Array.from(guess).length !== 4} className="mt-5 w-full bg-[#f5f5f5] px-4 py-3 text-sm font-medium text-[#0b0b0b] disabled:opacity-40">{loading ? t("attacking") : t("attack")}</button>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}</div><History humanResults={humanResults} machineResults={machineResults} humanGlyphSetId={glyphSetId} opponentGlyphSetId={opponentGlyphSetId} placement={historyPlacement} onPlacementChange={setHistoryPlacement}/></>}
       {phase === "player-result" && lastResult && <ResultPanel result={lastResult} label={t("yourAttack")} action={t("continue")} onAction={continueAfterPlayerResult} glyphSetId={opponentGlyphSetId}/>}
       {phase === "thinking" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="bot-attack-lane" aria-label={t("botAnalyzing")}><img src={GAME_BOTS.find((bot) => bot.level === difficulty)?.avatar ?? "/game/bots/spark.svg"} alt="" className="bot-thinking-avatar" /><span className="energy-orb" aria-hidden="true" /><img src={activeChest ? `/store/chests/${activeChest.replace("chest-", "")}.svg` : "/store/chests/predeterminado.svg"} alt={t("chestAlt")} className="bot-attack-chest" /></div><ThinkingGlyphs value={machineReveal} glyphSetId={glyphSetId}/><div className="mt-7 flex gap-2"><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/><span className="thinking-dot h-3 w-3 rounded-full bg-white/80"/></div><p className="mt-5 text-sm text-white/40">{t("analyzing")}</p></div>}
       {phase === "opponent-result" && lastResult && <ResultPanel result={lastResult} label={t("machineAttack")} action={t("yourTurn")} onAction={continueAfterOpponentResult} glyphSetId={glyphSetId}/>}
       {phase === "final-turn" && <div className="flex flex-1 flex-col items-center justify-center text-center"><div className="text-xs uppercase tracking-[0.3em] text-white/35">último turno</div><h2 className="mt-5 text-3xl font-medium">{finalActor === "human" ? t("extraTurnHuman") : t("extraTurnMachine")}</h2><p className="mt-4 max-w-md text-sm leading-6 text-white/40">{starter === "human" ? t("finalReasonHuman") : t("finalReasonMachine")}</p><button type="button" onClick={beginFinalTurn} className="mt-8 bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{finalActor === "human" ? t("playFinalTurn") : t("continue")}</button></div>}
-      {(phase === "won" || phase === "lost" || phase === "draw") && <div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">{t("gameOver")}</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? t("won") + "." : phase === "lost" ? t("lost") + "." : t("draw") + "."}</h2><div className="mt-5 flex flex-col items-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">{t("opponentCode")}</span><Glyphs value={machineSecret} glyphSetId={opponentGlyphSetId} /></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">{t("drawDesc")}</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("difficulty"); setError(""); setMySecret(""); setGuess(""); setCoinsReward(0); setCoinsBalance(null); setProgression(null); setDiscarded(new Set()); setDiscardMode(false); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{t("newGame")}</button><Link href="/game" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">{t("home")}</Link></div>{progression && <div className="coin-reward mt-10 flex flex-col items-center gap-3" aria-live="polite"><div className="flex items-center gap-2 text-violet-300"><span className="text-xl font-semibold tabular-nums">+{progression.experienceReward}</span><span className="text-sm">XP</span></div><div className="text-xs text-white/45">{t("level")} {progression.level} · {progression.experience}/1000 XP</div>{progression.levelUp && <div className="flex flex-col items-center gap-2 border border-amber-400/20 px-5 py-3"><span className="text-sm font-medium text-amber-300">{t("levelUpReward")}</span><span className="text-sm text-amber-200">+{progression.levelRewardCoins} {t("coinMany")}</span>{progression.levelRewardGems > 0 && <span className="flex items-center gap-1 text-sm text-cyan-300"><Gem size={15}/> +{progression.levelRewardGems} {t("gemMany")}</span>}</div>}{coinsReward > 0 && <div className="flex items-center gap-2 text-amber-300"><Coins size={20} strokeWidth={1.8}/><span className="text-lg font-semibold tabular-nums">+{coinsReward}</span><span className="text-sm">{coinsReward === 1 ? t("coinOne") : t("coinMany")}</span></div>}{coinsBalance !== null && <span className="text-xs text-white/35">{t("balance")}: {coinsBalance.toLocaleString("es-AR")} {coinsBalance === 1 ? t("coinOne") : t("coinMany")}</span>}</div>}</div>}
+      {(phase === "won" || phase === "lost" || phase === "draw") && <><div className={"phase-enter flex flex-1 flex-col items-center justify-center text-center " + (phase === "won" ? "text-emerald-400" : phase === "lost" ? "text-red-400" : "text-white")}><div className="text-xs uppercase tracking-[0.3em] text-current/50">{t("gameOver")}</div><h2 className="mt-4 text-4xl font-medium">{phase === "won" ? t("won") + "." : phase === "lost" ? t("lost") + "." : t("draw") + "."}</h2><div className="mt-5 flex flex-col items-center gap-2"><span className="text-xs uppercase tracking-[0.2em] text-white/35">{t("opponentCode")}</span><Glyphs value={machineSecret} glyphSetId={opponentGlyphSetId} /></div>{phase === "draw" && <p className="mt-3 max-w-md text-sm leading-6 text-current/60">{t("drawDesc")}</p>}<div className="mt-8 flex w-full max-w-sm flex-col gap-3"><button type="button" onClick={() => { setPhase("difficulty"); setError(""); setMySecret(""); setGuess(""); setCoinsReward(0); setCoinsBalance(null); setProgression(null); setDiscarded(new Set()); setDiscardMode(false); }} className="w-full bg-[#f5f5f5] px-8 py-3 text-sm font-medium text-[#0b0b0b]">{t("newGame")}</button><Link href="/game" className="w-full border border-white/15 px-8 py-3 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white">{t("home")}</Link></div>{progression && <div className="coin-reward mt-10 flex flex-col items-center gap-3" aria-live="polite"><div className="flex items-center gap-2 text-violet-300"><span className="text-xl font-semibold tabular-nums">+{progression.experienceReward}</span><span className="text-sm">XP</span></div><div className="text-xs text-white/45">{t("level")} {progression.level} · {progression.experience}/1000 XP</div>{progression.levelUp && <div className="flex flex-col items-center gap-2 border border-amber-400/20 px-5 py-3"><span className="text-sm font-medium text-amber-300">{t("levelUpReward")}</span><span className="text-sm text-amber-200">+{progression.levelRewardCoins} {t("coinMany")}</span>{progression.levelRewardGems > 0 && <span className="flex items-center gap-1 text-sm text-cyan-300"><Gem size={15}/> +{progression.levelRewardGems} {t("gemMany")}</span>}</div>}{coinsReward > 0 && <div className="flex items-center gap-2 text-amber-300"><Coins size={20} strokeWidth={1.8}/><span className="text-lg font-semibold tabular-nums">+{coinsReward}</span><span className="text-sm">{coinsReward === 1 ? t("coinOne") : t("coinMany")}</span></div>}{coinsBalance !== null && <span className="text-xs text-white/35">{t("balance")}: {coinsBalance.toLocaleString("es-AR")} {coinsBalance === 1 ? t("coinOne") : t("coinMany")}</span>}</div>}</div>}<div className="mt-12 w-full max-w-2xl text-left"><History humanResults={humanResults} machineResults={machineResults} humanGlyphSetId={glyphSetId} opponentGlyphSetId={opponentGlyphSetId} showControls={false}/></div></>}
     </>}
   </section></div>
     {confirmClose && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-5 backdrop-blur-sm"><div className="w-full max-w-md border border-white/10 bg-[#111] p-6 shadow-2xl"><h2 className="text-xl font-medium">{t("confirmClose")}</h2><p className="mt-3 text-sm leading-6 text-white/45">{t("leaveCountsAsLoss")}</p><div className="mt-7 flex gap-3"><button type="button" onClick={() => setConfirmClose(false)} className="flex-1 border border-white/10 px-4 py-3 text-sm text-white/60 hover:border-white/25 hover:text-white">{t("cancel")}</button><button type="button" onClick={confirmAbandon} className="flex-1 bg-red-500 px-4 py-3 text-sm font-medium text-white">{t("closeMatch")}</button></div></div></div>}
