@@ -19,7 +19,7 @@ export default async function Home() {
 
   const client = getAdminClient();
   const [{ data: profile }, { data: ownedRows }] = await Promise.all([
-    client.from("app_users").select("active_glyph_set,active_avatar,active_theme,active_chest").eq("id", user.sub).single(),
+    client.from("app_users").select("active_glyph_set,active_avatar,active_theme,active_chest,level,experience").eq("id", user.sub).single(),
     client.from("user_store_items").select("item_id").eq("user_id", user.sub),
   ]);
   const ownedIds = (ownedRows ?? []).map((row) => row.item_id);
@@ -51,6 +51,15 @@ export default async function Home() {
         <section className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-white/35"><T k="welcome" /></p>
           <div className="mt-3 flex items-center justify-center gap-3"><img src={profile?.active_avatar ? (ownedItems.find((item) => item.id === profile.active_avatar)?.image ?? "/store/avatars/predeterminado.svg") : "/store/avatars/predeterminado.svg"} alt="" className="h-12 w-12 shrink-0 rounded-full object-contain" /><h1 className="text-4xl font-medium tracking-tight">{user.name || user.email}</h1></div>
+          <div className="mt-4 w-full max-w-xs text-left">
+            <div className="mb-1.5 flex items-center justify-between text-xs">
+              <span className="font-medium text-white/75"><T k="level" /> {profile?.level ?? 1}</span>
+              <span className="tabular-nums text-white/40">{profile?.experience ?? 0} / 1000 XP</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label="Experience" aria-valuemin={0} aria-valuemax={1000} aria-valuenow={Math.min(1000, Math.max(0, Number(profile?.experience ?? 0)))}>
+              <div className="h-full rounded-full bg-cyan-400 transition-[width]" style={{ width: `${Math.min(100, Math.max(0, (Number(profile?.experience ?? 0) / 1000) * 100))}%` }} />
+            </div>
+          </div>
           <div className="mt-4 flex items-center justify-center gap-4" aria-label="Gemlocks"><span className="home-gem" /><span className="home-gem" /><span className="home-gem" /></div>
 
           <div className="mt-8 grid w-full max-w-xl grid-cols-3 gap-3">
