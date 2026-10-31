@@ -67,7 +67,15 @@ export async function loadGame(req: NextRequest) {
   if (!user) return null;
 
   const client = getAdminClient();
-  const select = (withParticipantGlyphs: boolean) => {
+  type SessionRow = {
+    game_id: string; user_id: string; human_secret: string; machine_secret: string;
+    difficulty: number; glyph_values: unknown; human_glyph_set_id?: unknown;
+    opponent_glyph_set_id?: unknown; human_glyph_values?: unknown; opponent_glyph_values?: unknown;
+    starter: string; human_guesses: unknown; machine_guesses: unknown; first_winner: string | null;
+    final_turn_used: boolean; current_player: string; status: string; last_seen_at: string | null;
+  };
+  type QueryResult = { data: SessionRow | null; error: { code?: string; message: string } | null };
+  const select = async (withParticipantGlyphs: boolean): Promise<QueryResult> => {
     let query = client.from("game_sessions")
       .select(withParticipantGlyphs
         ? "game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,human_glyph_set_id,opponent_glyph_set_id,human_glyph_values,opponent_glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at"
@@ -76,7 +84,7 @@ export async function loadGame(req: NextRequest) {
 
     if (requestedGameId) query = query.eq("game_id", requestedGameId);
     else query = query.eq("status", "active").order("created_at", { ascending: false }).limit(1);
-    return query.maybeSingle();
+    return await query.maybeSingle() as unknown as QueryResult;
   };
 
   let { data, error } = await select(true);

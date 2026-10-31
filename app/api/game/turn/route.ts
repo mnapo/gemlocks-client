@@ -3,7 +3,7 @@ import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
 import { finishGame, loadGame, touchGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
-import { GLYPH_SETS } from "@/lib/game/glyphs";
+import { GLYPH_SETS, type GlyphSetId } from "@/lib/game/glyphs";
 import { getAdminClient } from "@/lib/supabase/admin";
 
 function result(score: GuessResult) { return { guess: score.guess, perfect: score.perfect, regular: score.regular }; }
@@ -14,8 +14,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const actor = body?.actor === "machine" ? "machine" : "human";
   const state = game.state;
-  const humanAlphabet = (state.humanGlyphValues.length ? state.humanGlyphValues : GLYPH_SETS[state.humanGlyphSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
-  const opponentAlphabet = (state.opponentGlyphValues.length ? state.opponentGlyphValues : GLYPH_SETS[state.opponentGlyphSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
+  const humanSetId = state.humanGlyphSetId as GlyphSetId;
+  const opponentSetId = state.opponentGlyphSetId as GlyphSetId;
+  const humanAlphabet = (state.humanGlyphValues.length ? state.humanGlyphValues : GLYPH_SETS[humanSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
+  const opponentAlphabet = (state.opponentGlyphValues.length ? state.opponentGlyphValues : GLYPH_SETS[opponentSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
   const alphabet = actor === "human" ? opponentAlphabet : humanAlphabet;
 
   if (actor !== state.currentPlayer) return NextResponse.json({ error: "No es el turno de ese jugador" }, { status: 409 });
