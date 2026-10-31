@@ -5,12 +5,23 @@ ALTER TABLE public.game_sessions
   ADD COLUMN IF NOT EXISTS opponent_glyph_values jsonb NOT NULL DEFAULT '[]'::jsonb;
 
 UPDATE public.game_sessions
-SET human_glyph_values = glyph_values,
-    opponent_glyph_values = glyph_values
-WHERE jsonb_array_length(glyph_values) > 0
+SET human_glyph_values = COALESCE(glyph_values, '[]'::jsonb),
+    opponent_glyph_values = COALESCE(glyph_values, '[]'::jsonb)
+WHERE jsonb_typeof(COALESCE(glyph_values, '[]'::jsonb)) = 'array'
+  AND jsonb_array_length(COALESCE(glyph_values, '[]'::jsonb)) > 0
   AND jsonb_array_length(human_glyph_values) = 0
   AND jsonb_array_length(opponent_glyph_values) = 0;
 
-ALTER TABLE public.game_sessions
-  ADD CONSTRAINT game_sessions_human_glyph_values_array_check CHECK (jsonb_typeof(human_glyph_values) = 'array'),
-  ADD CONSTRAINT game_sessions_opponent_glyph_values_array_check CHECK (jsonb_typeof(opponent_glyph_values) = 'array');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'game_sessions_human_glyph_values_array_check') THEN
+    ALTER TABLE public.game_sessions
+      ADD CONSTRAINT game_sessions_human_glyph_values_array_check
+      CHECK (jsonb_typeof(human_glyph_values) = 'array');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'game_sessions_opponent_glyph_values_array_check') THEN
+    ALTER TABLE public.game_sessions
+      ADD CONSTRAINT game_sessions_opponent_glyph_values_array_check
+      CHECK (jsonb_typeof(opponent_glyph_values) = 'array');
+  END IF;
+END $$;

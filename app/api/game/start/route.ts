@@ -74,7 +74,12 @@ export async function POST(req: NextRequest) {
     opponent_glyph_values: opponentGlyphValues,
     status: "active",
   });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    if (error.code === "42703" || /human_glyph_set_id|opponent_glyph_set_id|human_glyph_values|opponent_glyph_values/.test(error.message)) {
+      return NextResponse.json({ error: "La base de datos necesita la migración de sets de glifos por participante antes de iniciar partidas." }, { status: 503 });
+    }
+    return NextResponse.json({ error: "No se pudo crear la partida." }, { status: 500 });
+  }
 
   const res = NextResponse.json({ ok: true, gameId, starter, humanSecret, glyphSet, glyphValues, opponentGlyphSetId, opponentGlyphValues });
   setGameCookie(res, await signGameId(gameId));
