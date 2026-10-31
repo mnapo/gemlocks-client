@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeftCircle, Bot, Check, Coins, Gem, LockKeyhole, Maximize2, Move, Rows2, Columns2, Trash2, User, X } from "lucide-react";
 import { DIFFICULTIES, type DifficultyLevel } from "@/lib/game/difficulty";
@@ -142,21 +142,21 @@ function History({
   const { t } = useI18n();
   const [tab, setTab] = useState<"human" | "machine">("human");
   const [page, setPage] = useState(0);
-  const [position, setPosition] = useState({ x: 0, y: 150 });
+  const [position, setPosition] = useState({ x: -1, y: 150 });
   const dragOffset = useRef({ x: 0, y: 0 });
   const results = tab === "human" ? humanResults : machineResults;
   const pageCount = Math.max(1, Math.ceil(results.length / 6));
   const currentPage = Math.min(page, pageCount - 1);
   const visible = [...results].reverse().slice(currentPage * 6, currentPage * 6 + 6);
   function changeTab(next: "human" | "machine") { setTab(next); setPage(0); }
-  function startDrag(event: React.PointerEvent<HTMLDivElement>) {
+  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
     if (placement !== "floating") return;
     event.preventDefault();
     const rect = event.currentTarget.parentElement?.getBoundingClientRect();
     dragOffset.current = { x: event.clientX - (rect?.left ?? position.x), y: event.clientY - (rect?.top ?? position.y) };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
-  function drag(event: React.PointerEvent<HTMLDivElement>) {
+  function drag(event: ReactPointerEvent<HTMLDivElement>) {
     if (placement !== "floating" || (event.buttons === 0 && event.pointerType !== "touch")) return;
     const width = Math.min(320, window.innerWidth - 24);
     const height = event.currentTarget.parentElement?.getBoundingClientRect().height ?? 300;
@@ -165,7 +165,7 @@ function History({
       y: Math.max(12, Math.min(window.innerHeight - Math.min(height, window.innerHeight - 24) - 12, event.clientY - dragOffset.current.y)),
     });
   }
-  const floatingStyle = placement === "floating" ? { position: "fixed" as const, left: position.x || undefined, top: position.y, width: "min(320px, calc(100vw - 24px))", maxHeight: "calc(100vh - 24px)", zIndex: 40 } : undefined;
+  const floatingStyle = placement === "floating" ? { position: "fixed" as const, left: position.x < 0 ? undefined : position.x, right: position.x < 0 ? 16 : undefined, top: position.y, width: "min(320px, calc(100vw - 24px))", maxHeight: "calc(100vh - 24px)", zIndex: 40 } : undefined;
   return <div style={floatingStyle} className={placement === "left" ? "fixed left-3 top-36 z-30 w-[min(290px,calc(100vw-24px))] max-h-[calc(100vh-160px)] overflow-y-auto border border-white/10 bg-[#101010] p-3 shadow-2xl xl:left-[max(16px,calc(50%-600px))]" : placement === "floating" ? "overflow-auto border border-white/20 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-md" : "mt-12"}>
     <div className="flex items-center justify-between border-b border-white/10 pb-3">
       <div className="flex min-w-0 items-center gap-2">
