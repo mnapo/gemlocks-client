@@ -19,7 +19,7 @@ export const GLYPH_SETS: Record<GlyphSetId, GlyphSet> = {
   galaxies: {
     id: "galaxies", name: "Galaxias", glyphs: [
       ["spiral","Espiral","/glyphs/galaxies/spiral.svg"],["barred","Espiral barrada","/glyphs/galaxies/barred.svg"],["elliptical","Elíptica","/glyphs/galaxies/elliptical.svg"],["lenticular","Lenticular","/glyphs/galaxies/lenticular.svg"],["irregular","Irregular","/glyphs/galaxies/irregular.svg"],["ring","Anular","/glyphs/galaxies/ring.svg"],["compact","Compacta","/glyphs/galaxies/compact.svg"],["edge-on","De canto","/glyphs/galaxies/edge-on.svg"],["collision","Colisión","/glyphs/galaxies/collision.svg"],["dwarf","Enana","/glyphs/galaxies/dwarf.svg"],["bright-core","Núcleo brillante","/glyphs/galaxies/bright-core.svg"],["dark-disk","Disco oscuro","/glyphs/galaxies/dark-disk.svg"],
-    ].map(([id,label,asset]) => ({id:`galaxy-${id}`,label,value:id,asset})),
+    ].map(([id,label,asset], index) => ({id:`galaxy-${id}`,label,value:String.fromCharCode(0xE000 + index),asset})),
   },
   numeric: {
     id: "numeric",
