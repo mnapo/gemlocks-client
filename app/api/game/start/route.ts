@@ -6,6 +6,7 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { randomUUID } from "crypto";
 import { signGameId, setGameCookie } from "@/lib/game/session";
 import { GLYPH_SETS, sampleGlyphValues, type GlyphSetId } from "@/lib/game/glyphs";
+import { getBotForLevel } from "@/lib/game/bots";
 
 export async function POST(req: NextRequest) {
   const sessionToken = req.cookies.get(SESSION_COOKIE)?.value;
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest) {
   if (!selectedSet) return NextResponse.json({ error: "Set de glifos inválido" }, { status: 400 });
 
   const alphabet = selectedSet.glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
+  const bot = getBotForLevel(difficulty)!;
+  const opponentGlyphSetId = bot.glyphSetId;
+  const opponentAlphabet = GLYPH_SETS[opponentGlyphSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value));
   if (!isValidCode(humanSecret, alphabet.join(""))) return NextResponse.json({ error: "El código debe tener 4 glifos distintos" }, { status: 400 });
   const glyphValues = requestedGlyphValues.length ? requestedGlyphValues : (alphabet.length > 10 ? sampleGlyphValues(glyphSet) : alphabet);
   const validGlyphSet = new Set(alphabet);
@@ -30,6 +34,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Selección de glifos inválida." }, { status: 400 });
   }
   const alphabetString = glyphValues.join("");
+  const opponentGlyphValues = sampleGlyphValues(opponentGlyphSetId);
+  const opponentAlphabetString = opponentGlyphValues.join("");
   if (!isValidCode(humanSecret, alphabetString)) return NextResponse.json({ error: "El código elegido no pertenece a los glifos de esta partida. Volvé a elegirlo." }, { status: 400 });
 
   const client = getAdminClient();
@@ -43,7 +49,7 @@ export async function POST(req: NextRequest) {
   const { data: existing } = await client.from("game_sessions").select("game_id").eq("user_id", user.sub).eq("status","active").limit(1).maybeSingle();
   if (existing) return NextResponse.json({ error: "Ya tenés una partida activa" }, { status: 409 });
 
-  const codes = generateCodes(alphabetString);
+  const codes = generateCodes(opponentAlphabetString);
   let machineSecret = codes[Math.floor(Math.random() * codes.length)];
   while (machineSecret === humanSecret) machineSecret = codes[Math.floor(Math.random() * codes.length)];
   const starter = Math.random() < 0.5 ? "human" : "machine";
@@ -62,11 +68,15 @@ export async function POST(req: NextRequest) {
     first_winner: null,
     final_turn_used: false,
     glyph_values: glyphValues,
+    human_glyph_set_id: glyphSet,
+    opponent_glyph_set_id: opponentGlyphSetId,
+    human_glyph_values: glyphValues,
+    opponent_glyph_values: opponentGlyphValues,
     status: "active",
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const res = NextResponse.json({ ok: true, gameId, starter, humanSecret, glyphSet, glyphValues });
+  const res = NextResponse.json({ ok: true, gameId, starter, humanSecret, glyphSet, glyphValues, opponentGlyphSetId, opponentGlyphValues });
   setGameCookie(res, await signGameId(gameId));
   return res;
 }

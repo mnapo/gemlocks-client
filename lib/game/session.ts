@@ -2,6 +2,7 @@ import { getAdminClient } from "@/lib/supabase/admin";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import { jwtVerify, SignJWT } from "jose";
 import type { NextRequest, NextResponse } from "next/server";
+import type { GlyphSetId } from "@/lib/game/glyphs";
 
 export const GAME_COOKIE = "gemlocks_game";
 
@@ -12,6 +13,10 @@ export type GameState = {
   machineSecret: string;
   difficulty: number;
   glyphValues: string[];
+  humanGlyphSetId: GlyphSetId;
+  opponentGlyphSetId: GlyphSetId;
+  humanGlyphValues: string[];
+  opponentGlyphValues: string[];
   starter: "human" | "machine";
   currentPlayer: "human" | "machine";
   humanGuesses: { guess: string; perfect: number; regular: number }[];
@@ -49,7 +54,7 @@ export async function loadGame(req: NextRequest) {
 
   let query = getAdminClient()
     .from("game_sessions")
-    .select("game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
+    .select("game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,human_glyph_set_id,opponent_glyph_set_id,human_glyph_values,opponent_glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
     .eq("user_id", user.sub);
 
   if (requestedGameId) {
@@ -70,6 +75,10 @@ export async function loadGame(req: NextRequest) {
       machineSecret: data.machine_secret,
       difficulty: data.difficulty,
       glyphValues: Array.isArray(data.glyph_values) && data.glyph_values.length ? data.glyph_values as string[] : [],
+      humanGlyphSetId: (data.human_glyph_set_id ?? "numeric") as GlyphSetId,
+      opponentGlyphSetId: (data.opponent_glyph_set_id ?? "numeric") as GlyphSetId,
+      humanGlyphValues: Array.isArray(data.human_glyph_values) && data.human_glyph_values.length ? data.human_glyph_values as string[] : (Array.isArray(data.glyph_values) ? data.glyph_values as string[] : []),
+      opponentGlyphValues: Array.isArray(data.opponent_glyph_values) && data.opponent_glyph_values.length ? data.opponent_glyph_values as string[] : (Array.isArray(data.glyph_values) ? data.glyph_values as string[] : []),
       starter: data.starter as "human" | "machine",
       currentPlayer: data.current_player as "human" | "machine",
       humanGuesses: data.human_guesses as GameState["humanGuesses"],
