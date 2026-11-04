@@ -389,7 +389,7 @@ export default function GamePage() {
     if (Array.from(guess).length !== 4 || loading) return;
     setLoading(true); setError("");
     try {
-      const { res, data } = await attack("human", guess);
+      const { res, data } = await attack("human", crypto.randomUUID(), guess);
       if (!res.ok) { setError(data?.error ?? t("attackError")); return; }
       const result = data.result as Result;
       setHumanResults((current) => [...current, result]); setLastResult(result); setGuess(""); setDiscardMode(false); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
@@ -411,7 +411,7 @@ export default function GamePage() {
     setMachineReveal("");
     const timer = window.setTimeout(async () => {
       try {
-        const { res, data } = await attack("machine");
+        const { res, data } = await attack("machine", machineRequestId);
         if (!active) return;
         if (!res.ok) { setError(data?.error ?? t("attackError")); return; }
         const machineGuess = String(data.machineGuess ?? "");
