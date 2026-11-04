@@ -18,6 +18,37 @@ export async function POST(req: NextRequest) {
   if (!requestId) return NextResponse.json({ error: "Identificador de turno inválido." }, { status: 400 });
 
   const state = game.state;
+  const previous = await getAdminClient().rpc("get_game_turn_response", {
+    p_game_id: state.gameId, p_user_id: state.userId, p_request_id: requestId,
+  });
+  if (previous.error) {
+    console.error("get_game_turn_response failed", previous.error);
+    return NextResponse.json({ error: "No se pudo verificar el estado del ataque." }, { status: 503 });
+  }
+  if (previous.data) {
+    const saved = previous.data as Record<string, unknown>;
+    const terminal = ["won", "lost", "draw"].includes(String(saved.status));
+    let extra: Record<string, unknown> = {};
+    if (terminal) {
+      const admin = getAdminClient();
+      const { data: reward } = await admin.from("game_results").select("coins_reward, experience_reward, level_up, level_reward_coins, level_reward_gems, resulting_level, resulting_experience").eq("game_id", state.gameId).eq("user_id", state.userId).maybeSingle();
+      const { data: profile } = await admin.from("app_users").select("coins, level, experience").eq("id", state.userId).maybeSingle();
+      if (reward) extra = {
+        coinsReward: Number(reward.coins_reward ?? 0),
+        progression: {
+          experienceReward: Number(reward.experience_reward ?? 0), levelUp: Boolean(reward.level_up),
+          levelRewardCoins: Number(reward.level_reward_coins ?? 0), levelRewardGems: Number(reward.level_reward_gems ?? 0),
+          level: Number(reward.resulting_level ?? profile?.level ?? 1), experience: Number(reward.resulting_experience ?? profile?.experience ?? 0),
+        },
+      };
+      if (profile) extra.coinsBalance = Number(profile.coins ?? 0);
+    }
+    const replay = NextResponse.json({ ...saved, ...extra, duplicate: true });
+    if (terminal) clearGameCookie(replay);
+    else setGameCookie(replay, await signGameId(state.gameId));
+    return replay;
+  }
+
   const humanSetId = state.humanGlyphSetId as GlyphSetId;
   const opponentSetId = state.opponentGlyphSetId as GlyphSetId;
   const humanAlphabet = (state.humanGlyphValues.length ? state.humanGlyphValues : GLYPH_SETS[humanSetId].glyphs.map((glyph) => glyph.value).filter((value): value is string => Boolean(value))).join("");
