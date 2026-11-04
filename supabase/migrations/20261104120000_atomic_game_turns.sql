@@ -76,3 +76,25 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.commit_game_turn(uuid, uuid, text, uuid, integer, jsonb, jsonb, text, boolean, text, jsonb, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.commit_game_turn(uuid, uuid, text, uuid, integer, jsonb, jsonb, text, boolean, text, jsonb, text) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.get_game_turn_response(
+  p_game_id uuid,
+  p_user_id uuid,
+  p_request_id uuid
+)
+RETURNS jsonb
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT gs.last_turn_response
+  FROM public.game_sessions AS gs
+  WHERE gs.game_id = p_game_id
+    AND gs.user_id = p_user_id
+    AND gs.last_turn_request_id = p_request_id
+    AND gs.last_turn_response IS NOT NULL
+  LIMIT 1;
+$function$;
+
+REVOKE ALL ON FUNCTION public.get_game_turn_response(uuid, uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_game_turn_response(uuid, uuid, uuid) TO service_role;
