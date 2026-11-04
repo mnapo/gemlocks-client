@@ -59,7 +59,7 @@ BEGIN
       current_player = p_current_player,
       turn_version = turn_version + 1,
       last_turn_request_id = p_request_id,
-      last_turn_response = p_response,
+      last_turn_response = p_response || jsonb_build_object('accepted', true, 'duplicate', false, 'version', p_expected_version + 1),
       last_seen_at = now()
   WHERE game_id = p_game_id AND user_id = p_user_id;
 
