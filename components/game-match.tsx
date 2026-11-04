@@ -121,7 +121,7 @@ function GlyphSelector({
 }
 function ThinkingGlyphs({ value, glyphSetId }: { value: string; glyphSetId: GlyphSetId }) {
   const set = getGlyphSet(glyphSetId);
-  return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => { const valueAtIndex = Array.from(value)[index]; const glyph = set.glyphs.find((item) => item.value === valueAtIndex); return <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/10 bg-white/[0.02] font-mono text-xl">{glyph ? <RenderGlyph glyph={glyph} className="h-11 w-11 text-2xl" /> : <span className="thinking-dot h-2.5 w-2.5 rounded-full bg-white/70" />}</div>; })}</div>;
+  return <div className="flex gap-3">{Array.from({ length: 4 }, (_, index) => { const valueAtIndex = Array.from(value)[index]; const glyph = set.glyphs.find((item) => item.value === valueAtIndex); return <div key={index} className="flex h-14 w-14 items-center justify-center border border-white/10 bg-white/[0.02] text-xl" style={glyphSetId === "emoji" ? { fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' } : undefined}>{glyph ? <RenderGlyph glyph={glyph} className="h-11 w-11 text-2xl" /> : <span className="thinking-dot h-2.5 w-2.5 rounded-full bg-white/70" />}</div>; })}</div>;
 }
 
 function Coin() {
@@ -429,7 +429,31 @@ export default function GamePage() {
       try {
         const { res, data } = await attack("machine", machineRequestId);
         if (!active) return;
-        if (!res.ok) { setError(data?.error ?? t("attackError")); return; }
+        if (!res.ok) {
+          if (res.status === 409) {
+            const currentRes = await fetch("/api/game/current", { cache: "no-store" });
+            const current = await currentRes.json().catch(() => null);
+            if (active && current?.active) {
+              const state = current.state;
+              setHumanResults(state.humanGuesses ?? []);
+              setMachineResults(state.machineGuesses ?? []);
+              setStarter(state.starter);
+              setMySecret(state.humanSecret);
+              setError("");
+              if (state.firstWinner && !state.finalTurnUsed) {
+                setFinalActor(state.firstWinner === "human" ? "machine" : "human");
+                setPhase("final-turn");
+              } else if (state.currentPlayer === "human") {
+                setPhase("player-turn");
+              } else {
+                setPhase("thinking");
+              }
+              return;
+            }
+          }
+          setError(data?.error ?? t("attackError"));
+          return;
+        }
         const machineGuess = String(data.machineGuess ?? "");
         for (let index = 0; index < machineGuess.length; index++) {
           await new Promise((resolve) => window.setTimeout(resolve, 550));
