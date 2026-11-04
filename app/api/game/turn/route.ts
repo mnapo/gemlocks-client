@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
 import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
-import { loadGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
+import { loadGame, clearGameCookie, setGameCookie, signGameId } from "@/lib/game/session";
 import { GLYPH_SETS, type GlyphSetId } from "@/lib/game/glyphs";
 import { getAdminClient } from "@/lib/supabase/admin";
 
