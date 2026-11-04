@@ -437,18 +437,27 @@ export default function GamePage() {
             const current = await currentRes.json().catch(() => null);
             if (active && current?.active) {
               const state = current.state;
-              setHumanResults(state.humanGuesses ?? []);
-              setMachineResults(state.machineGuesses ?? []);
+              const persistedMachine = (state.machineGuesses ?? []) as Result[];
+              const persistedHuman = (state.humanGuesses ?? []) as Result[];
+              setHumanResults(persistedHuman);
+              setMachineResults(persistedMachine);
               setStarter(state.starter);
               setMySecret(state.humanSecret);
               setError("");
               if (state.firstWinner && !state.finalTurnUsed) {
                 setFinalActor(state.firstWinner === "human" ? "machine" : "human");
                 setPhase("final-turn");
+              } else if (persistedMachine.length > machineResults.length) {
+                const committedResult = persistedMachine[persistedMachine.length - 1];
+                setLastResult(committedResult);
+                setMachineReveal(committedResult.guess);
+                machineRequestIdRef.current = null;
+                setPhase("opponent-result");
               } else if (state.currentPlayer === "human") {
+                machineRequestIdRef.current = null;
                 setPhase("player-turn");
               } else {
-                setPhase("thinking");
+                setError(data?.error ?? t("attackError"));
               }
               return;
             }
