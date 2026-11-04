@@ -105,9 +105,9 @@ export default function SettingsModal({ username, owned, activeGlyphSet, activeA
           <label className="block"><span className="mb-2 flex items-center gap-2 text-xs text-white/45"><Globe size={15}/> {t("language")}</span><select value={language} onChange={(event) => setLanguage(event.target.value as "en" | "es" | "es-AR")} className="w-full appearance-none border border-white/10 bg-[#171717] px-3 py-3 text-sm text-white"><option value="en">English</option><option value="es">Español</option><option value="es-AR">Español (Argentina)</option></select></label>
         </div> : <div className="py-2">
           <Carousel title={t("glyphSet")} items={glyphItems} value={glyphSet} onChange={(value) => setGlyphSet(value as GlyphSetId)} previousLabel={t("previous")} nextLabel={t("next")} />
-          <Carousel title={t("avatar")} items={avatarItems} value={avatar} onChange={setAvatar} />
-          <Carousel title={t("theme")} items={themeItems} value={theme} onChange={setTheme} />
-          <Carousel title={t("chest")} items={chestItems} value={chest} onChange={setChest} />
+          <Carousel title={t("avatar")} items={avatarItems} value={avatar} onChange={setAvatar} previousLabel={t("previous")} nextLabel={t("next")} />
+          <Carousel title={t("theme")} items={themeItems} value={theme} onChange={setTheme} previousLabel={t("previous")} nextLabel={t("next")} />
+          <Carousel title={t("chest")} items={chestItems} value={chest} onChange={setChest} previousLabel={t("previous")} nextLabel={t("next")} />
         </div>}
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {saved && <p className="mt-4 text-sm text-emerald-400">{saved}</p>}
