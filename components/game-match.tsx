@@ -379,9 +379,24 @@ export default function GamePage() {
     return () => window.clearTimeout(timer);
   }, [phase]);
 
-  async function attack(actor: "human" | "machine", value?: string) {
-    const res = await fetch("/api/game/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ actor, guess: value }) });
-    return { res, data: await res.json().catch(() => null) };
+  async function attack(actor: "human" | "machine", requestId: string, value?: string) {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch("/api/game/turn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ actor, guess: value, requestId }),
+        });
+        const data = await res.json().catch(() => null);
+        if (res.status !== 503 || attempt === 2) return { res, data };
+        await new Promise((resolve) => window.setTimeout(resolve, 400 * (attempt + 1)));
+      } catch (error) {
+        lastError = error;
+        if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 400 * (attempt + 1)));
+      }
+    }
+    throw lastError ?? new Error("No se pudo confirmar el ataque.");
   }
 
   async function submitGuess(event: FormEvent) {
@@ -408,6 +423,7 @@ export default function GamePage() {
   useEffect(() => {
     if (phase !== "thinking") return;
     let active = true;
+    const machineRequestId = crypto.randomUUID();
     setMachineReveal("");
     const timer = window.setTimeout(async () => {
       try {
