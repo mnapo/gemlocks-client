@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { chooseMachineGuess } from "@/lib/game/machine";
 import { isValidCode, scoreGuess, type GuessResult } from "@/lib/game/engine";
 import type { DifficultyLevel } from "@/lib/game/difficulty";
-import { finishGame, loadGame, touchGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
+import { loadGame, clearGameCookie, setGameCookie, signGameId, type GameState } from "@/lib/game/session";
 import { GLYPH_SETS, type GlyphSetId } from "@/lib/game/glyphs";
 import { getAdminClient } from "@/lib/supabase/admin";
 
@@ -13,6 +14,9 @@ export async function POST(req: NextRequest) {
   if (!game) return NextResponse.json({ error: "No hay una partida activa" }, { status: 400 });
   const body = await req.json().catch(() => null);
   const actor = body?.actor === "machine" ? "machine" : "human";
+  const requestId = typeof body?.requestId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.requestId) ? body.requestId : null;
+  if (!requestId) return NextResponse.json({ error: "Identificador de turno inválido." }, { status: 400 });
+
   const state = game.state;
   const humanSetId = state.humanGlyphSetId as GlyphSetId;
   const opponentSetId = state.opponentGlyphSetId as GlyphSetId;
@@ -51,23 +55,41 @@ export async function POST(req: NextRequest) {
     finalTurnUsed = true;
   }
 
+  const terminalResult = status === "won" ? "victory" : status === "lost" ? "defeat" : status === "draw" ? "draw" : null;
+  const response = {
+    status, actor, result: result(attack),
+    ...(actor === "machine" ? { machineGuess: guess } : {}),
+    ...(finalActor ? { finalActor } : {}),
+    ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}),
+  };
+  const committed = await getAdminClient().rpc("commit_game_turn", {
+    p_game_id: state.gameId,
+    p_user_id: state.userId,
+    p_actor: actor,
+    p_request_id: requestId,
+    p_expected_version: state.turnVersion,
+    p_human_guesses: nextHuman,
+    p_machine_guesses: nextMachine,
+    p_first_winner: firstWinner,
+    p_final_turn_used: finalTurnUsed,
+    p_current_player: actor === "human" ? "machine" : "human",
+    p_response: response,
+    p_terminal_result: terminalResult,
+  });
+
+  if (committed.error) {
+    console.error("commit_game_turn failed", committed.error);
+    return NextResponse.json({ error: "No se pudo guardar el ataque. El turno sigue pendiente." }, { status: 503 });
+  }
+  const commitData = committed.data as { accepted?: boolean; duplicate?: boolean; reason?: string; [key: string]: unknown } | null;
+  if (!commitData?.accepted) {
+    return NextResponse.json({ error: "El estado de la partida cambió. Actualizá la partida para continuar.", reason: commitData?.reason }, { status: 409 });
+  }
+
   let coinsReward = 0;
   let coinsBalance: number | undefined;
   let progression: { experienceReward: number; levelUp: boolean; levelRewardCoins: number; levelRewardGems: number; level: number; experience: number } | undefined;
-  const nextState: GameState = { ...state, currentPlayer: actor === "human" ? "machine" : "human", humanGuesses: nextHuman, machineGuesses: nextMachine, firstWinner, finalTurnUsed };
-  if (status === "playing") {
-    await touchGame(state.gameId, state.userId, nextState);
-  } else if (status === "final-turn") {
-    await touchGame(state.gameId, state.userId, nextState);
-  } else {
-    const finished = await finishGame(
-      state.gameId,
-      state.userId,
-      status === "won" ? "victory" : status === "lost" ? "defeat" : "draw",
-    );
-    if (!finished) {
-      return NextResponse.json({ error: "La partida no pudo finalizarse." }, { status: 500 });
-    }
+  if (terminalResult) {
     const admin = getAdminClient();
     const { data: rewardRecord } = await admin.from("game_results")
       .select("coins_reward, experience_reward, level_up, level_reward_coins, level_reward_gems, resulting_level, resulting_experience")
@@ -87,11 +109,13 @@ export async function POST(req: NextRequest) {
     if (profile) coinsBalance = Number(profile.coins ?? 0);
   }
 
-  const res = NextResponse.json({ status, actor, result: result(attack), ...(status === "won" ? { coinsReward } : {}), ...(coinsBalance !== undefined ? { coinsBalance } : {}), ...(progression ? { progression } : {}), ...(actor === "machine" ? { machineGuess: guess } : {}), ...(finalActor ? { finalActor } : {}), ...(["won", "lost", "draw"].includes(status) ? { machineSecret: state.machineSecret } : {}) });
-  if (status === "won" || status === "lost" || status === "draw") {
-    clearGameCookie(res);
-  } else {
-    setGameCookie(res, await signGameId(state.gameId));
-  }
+  const res = NextResponse.json({
+    ...response,
+    ...(status === "won" ? { coinsReward } : {}),
+    ...(coinsBalance !== undefined ? { coinsBalance } : {}),
+    ...(progression ? { progression } : {}),
+  });
+  if (terminalResult) clearGameCookie(res);
+  else setGameCookie(res, await signGameId(state.gameId));
   return res;
 }
