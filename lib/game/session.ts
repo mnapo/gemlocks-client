@@ -72,14 +72,14 @@ export async function loadGame(req: NextRequest) {
     difficulty: number; glyph_values: unknown; human_glyph_set_id?: unknown;
     opponent_glyph_set_id?: unknown; human_glyph_values?: unknown; opponent_glyph_values?: unknown;
     starter: string; human_guesses: unknown; machine_guesses: unknown; first_winner: string | null;
-    final_turn_used: boolean; current_player: string; status: string; last_seen_at: string | null;
+    final_turn_used: boolean; current_player: string; status: string; last_seen_at: string | null; turn_version?: number;
   };
   type QueryResult = { data: SessionRow | null; error: { code?: string; message: string } | null };
   const select = async (withParticipantGlyphs: boolean): Promise<QueryResult> => {
     let query = client.from("game_sessions")
       .select(withParticipantGlyphs
-        ? "game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,human_glyph_set_id,opponent_glyph_set_id,human_glyph_values,opponent_glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at"
-        : "game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at")
+        ? "game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,human_glyph_set_id,opponent_glyph_set_id,human_glyph_values,opponent_glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at,turn_version"
+        : "game_id,user_id,human_secret,machine_secret,difficulty,glyph_values,starter,human_guesses,machine_guesses,first_winner,final_turn_used,current_player,status,last_seen_at,turn_version")
       .eq("user_id", user.sub);
 
     if (requestedGameId) query = query.eq("game_id", requestedGameId);
