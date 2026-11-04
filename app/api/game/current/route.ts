@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   await touchGame(game.state.gameId, game.state.userId);
   return NextResponse.json({ active: true, state: {
     gameId: game.state.gameId,
+    turnVersion: game.state.turnVersion,
     difficulty: game.state.difficulty,
     glyphValues: game.state.glyphValues,
     humanGlyphSetId: game.state.humanGlyphSetId,
