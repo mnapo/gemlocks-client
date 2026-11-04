@@ -9,6 +9,7 @@ export const GAME_COOKIE = "gemlocks_game";
 export type GameState = {
   gameId: string;
   userId: string;
+  turnVersion: number;
   humanSecret: string;
   machineSecret: string;
   difficulty: number;
@@ -105,6 +106,7 @@ export async function loadGame(req: NextRequest) {
     state: {
       gameId: data.game_id,
       userId: data.user_id,
+      turnVersion: Number(data.turn_version ?? 0),
       humanSecret: data.human_secret,
       machineSecret: data.machine_secret,
       difficulty: data.difficulty,
