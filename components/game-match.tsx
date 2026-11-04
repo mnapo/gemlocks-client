@@ -221,6 +221,7 @@ export default function GamePage() {
   const [guess, setGuess] = useState("");
   const [mySecret, setMySecret] = useState("");
   const [machineReveal, setMachineReveal] = useState("");
+  const machineRequestIdRef = useRef<string | null>(null);
   const [machineSecret, setMachineSecret] = useState("");
   const [humanResults, setHumanResults] = useState<Result[]>([]);
   const [machineResults, setMachineResults] = useState<Result[]>([]);
@@ -367,7 +368,7 @@ export default function GamePage() {
       const res = await fetch("/api/game/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ difficulty, glyphSet: glyphSetId, glyphValues: gameGlyphValues, humanSecret: mySecret }) });
       const data = await res.json().catch(() => null);
       if (!res.ok) { setError(data?.error ?? t("startMatchError")); return; }
-      setHumanResults([]); setMachineResults([]); setLastResult(null); setCoinsReward(0); setCoinsBalance(null); setProgression(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setGameGlyphValues(data.glyphValues ?? gameGlyphValues); setOpponentGlyphSetId(data.opponentGlyphSetId ?? "emoji"); setOpponentGlyphValues(data.opponentGlyphValues ?? []); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
+      setHumanResults([]); setMachineResults([]); setLastResult(null); machineRequestIdRef.current = null; setCoinsReward(0); setCoinsBalance(null); setProgression(null); setGuess(""); setMySecret(data.humanSecret ?? mySecret); setGameGlyphValues(data.glyphValues ?? gameGlyphValues); setOpponentGlyphSetId(data.opponentGlyphSetId ?? "emoji"); setOpponentGlyphValues(data.opponentGlyphValues ?? []); setMachineSecret(""); setFinalActor(null); setDiscardMode(false);
       setStarter(data.starter); setPhase("coin-toss");
     } catch { setError(t("networkError")); }
     finally { setLoading(false); }
@@ -423,7 +424,8 @@ export default function GamePage() {
   useEffect(() => {
     if (phase !== "thinking") return;
     let active = true;
-    const machineRequestId = crypto.randomUUID();
+    const machineRequestId = machineRequestIdRef.current ?? crypto.randomUUID();
+    machineRequestIdRef.current = machineRequestId;
     setMachineReveal("");
     const timer = window.setTimeout(async () => {
       try {
@@ -435,18 +437,27 @@ export default function GamePage() {
             const current = await currentRes.json().catch(() => null);
             if (active && current?.active) {
               const state = current.state;
-              setHumanResults(state.humanGuesses ?? []);
-              setMachineResults(state.machineGuesses ?? []);
+              const persistedMachine = (state.machineGuesses ?? []) as Result[];
+              const persistedHuman = (state.humanGuesses ?? []) as Result[];
+              setHumanResults(persistedHuman);
+              setMachineResults(persistedMachine);
               setStarter(state.starter);
               setMySecret(state.humanSecret);
               setError("");
               if (state.firstWinner && !state.finalTurnUsed) {
                 setFinalActor(state.firstWinner === "human" ? "machine" : "human");
                 setPhase("final-turn");
+              } else if (persistedMachine.length > machineResults.length) {
+                const committedResult = persistedMachine[persistedMachine.length - 1];
+                setLastResult(committedResult);
+                setMachineReveal(committedResult.guess);
+                machineRequestIdRef.current = null;
+                setPhase("opponent-result");
               } else if (state.currentPlayer === "human") {
+                machineRequestIdRef.current = null;
                 setPhase("player-turn");
               } else {
-                setPhase("thinking");
+                setError(data?.error ?? t("attackError"));
               }
               return;
             }
@@ -463,7 +474,8 @@ export default function GamePage() {
         await new Promise((resolve) => window.setTimeout(resolve, 450));
         if (!active) return;
         const result = data.result as Result;
-        setMachineResults((current) => [...current, result]); setLastResult(result); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
+        machineRequestIdRef.current = null;
+        setMachineResults((current) => current.some((item) => item.guess === result.guess && item.perfect === result.perfect && item.regular === result.regular) ? current : [...current, result]); setLastResult(result); if (data.machineSecret) setMachineSecret(String(data.machineSecret));
         if (data.status === "final-turn") { setFinalActor(data.finalActor); setPhase("final-turn"); }
         else if (data.status === "won" || data.status === "lost" || data.status === "draw") {
           if (data.status === "won") setCoinsReward(Number(data.coinsReward ?? 0));
