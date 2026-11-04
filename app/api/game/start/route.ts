@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
     machine_secret: machineSecret,
     difficulty,
     starter,
+    current_player: starter,
     human_guesses: [],
     machine_guesses: [],
     first_winner: null,
