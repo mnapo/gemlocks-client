@@ -114,3 +114,37 @@ body:has(.landing-page)::after { display:none !important; }
  .landing-page .landing-hero__gems { margin-bottom:24px; }
  .landing-page .landing-hero__icon-action { width:58px;height:58px;border-radius:15px; }
 }
+
+
+/* Mascot-led hero with a three-step visual tutorial and synchronized gem navigation. */
+.landing-page .landing-hero { min-height:100vh; justify-content:center; padding:clamp(72px,9vh,100px) 24px 78px !important; }
+.landing-page .landing-hero__art { position:absolute; z-index:1; top:clamp(38px,6vh,70px); left:50%; width:min(88vw,650px); height:clamp(300px,47vh,470px); transform:translateX(-50%); pointer-events:none; }
+.landing-page .landing-hero__mascot { display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 28px rgba(0,229,255,.13)); }
+.landing-page .landing-hero__backdrop { background:radial-gradient(ellipse at 50% 33%,rgba(0,229,255,.1),transparent 43%),linear-gradient(180deg,rgba(5,10,26,.18),rgba(5,10,26,.84)); }
+.landing-page .landing-hero__content { margin-top:clamp(320px,48vh,485px) !important; gap:clamp(22px,3.5vh,38px); }
+.landing-page .landing-hero__tutorial { width:min(92vw,520px);display:flex;flex-direction:column;align-items:center;gap:14px; }
+.landing-page .landing-hero__step-window { position:relative;width:100%;height:clamp(70px,11vh,100px);display:flex;align-items:center;justify-content:center; }
+.landing-page .landing-hero__step { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(8px) scale(.96);transition:opacity .45s ease,transform .45s ease; }
+.landing-page .landing-hero__step.is-active { opacity:1;transform:translateY(0) scale(1); }
+.landing-page .landing-hero__difficulty-art { display:flex;align-items:flex-end;gap:9px;height:62px; }
+.landing-page .landing-hero__difficulty-art span { width:clamp(24px,4vw,34px);height:var(--h);border:1px solid rgba(112,236,255,.72);border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,rgba(0,229,255,.5),rgba(20,39,78,.72));box-shadow:0 0 17px rgba(0,229,255,.16); }
+.landing-page .landing-hero__difficulty-art span:nth-child(1){--h:25px}.landing-page .landing-hero__difficulty-art span:nth-child(2){--h:34px}.landing-page .landing-hero__difficulty-art span:nth-child(3){--h:43px}.landing-page .landing-hero__difficulty-art span:nth-child(4){--h:52px}.landing-page .landing-hero__difficulty-art span:nth-child(5){--h:62px}
+.landing-page .landing-hero__coin-art { display:flex;width:62px;height:62px;align-items:center;justify-content:center;border:3px solid #f5d47a;border-radius:50%;color:#ffe7a0;background:radial-gradient(circle at 35% 25%,#b88b42,#573719 78%);font-size:29px;font-weight:800;text-shadow:0 2px 5px #50300e;box-shadow:0 0 26px rgba(255,203,91,.28),inset 0 0 0 4px rgba(255,238,171,.17); }
+.landing-page .landing-hero__attack-art { display:flex;align-items:center;gap:8px; }
+.landing-page .landing-hero__attack-art span { display:flex;width:38px;height:38px;align-items:center;justify-content:center;border:1px solid rgba(112,236,255,.65);border-radius:8px;color:#eafcff;background:rgba(8,28,58,.88);font-size:20px;box-shadow:0 0 15px rgba(0,229,255,.13); }
+.landing-page .landing-hero__attack-art i { margin-left:12px;color:#b9f6ff;font-size:30px;font-style:normal;text-shadow:0 0 18px rgba(0,229,255,.6); }
+.landing-page .landing-hero__gems { display:flex;align-items:center;justify-content:center;gap:clamp(18px,3vw,28px); }
+.landing-page .landing-hero__gem { display:flex;width:32px;height:32px;align-items:center;justify-content:center;padding:0;border:0;border-radius:50%;background:transparent;opacity:.36;cursor:pointer;transition:opacity .3s ease,transform .3s ease,filter .3s ease; }
+.landing-page .landing-hero__gem .home-gem { display:block;width:15px;height:15px;transform:rotate(45deg);border:1px solid #8cefff;background:linear-gradient(135deg,#eaffff 0%,#20d9f5 32%,#164c9c 100%);box-shadow:0 0 9px rgba(0,229,255,.35); }
+.landing-page .landing-hero__gem.is-active { opacity:1;transform:scale(1.22);filter:drop-shadow(0 0 10px rgba(0,229,255,.7)); }
+.landing-page .landing-hero__icon-action { width:60px;height:60px;border-radius:16px; }
+@media(max-width:640px) {
+ .landing-page .landing-hero { padding-top:64px !important;padding-bottom:68px !important; }
+ .landing-page .landing-hero__art { top:clamp(48px,8vh,78px);width:min(100vw,490px);height:clamp(255px,39vh,340px); }
+ .landing-page .landing-hero__content { margin-top:clamp(285px,43vh,360px) !important;gap:20px; }
+ .landing-page .landing-hero__step-window { height:74px; }
+ .landing-page .landing-hero__difficulty-art { transform:scale(.82); }
+ .landing-page .landing-hero__attack-art { transform:scale(.84); }
+ .landing-page .landing-hero__gem { width:29px;height:29px; }
+}
+@media(prefers-reduced-motion:reduce) { .landing-page .landing-hero__step,.landing-page .landing-hero__gem { transition:none; } }
