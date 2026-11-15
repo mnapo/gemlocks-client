@@ -2,24 +2,15 @@
 
 import Link from "next/link";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { ArrowUp, Heart, MessageCircle, Newspaper, Trophy, Gamepad2, UserPlus } from "lucide-react";
+import { Heart, MessageCircle, Newspaper, Trophy, Gamepad2, UserPlus } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
-import { TutorialVisual } from "@/components/tutorial-modal";
 import type { TranslationKey } from "@/lib/i18n/translations";
 
 type User = { name: string; email: string };
 type NewsItem = { id: string; title: string; body: string; published_at: string };
 type Player = { rank_position: number; name: string; active_avatar: string | null; score: number };
 
-const heroSlides: { title: TranslationKey; visual: string }[] = [
-  { title: "tutorialCodeTitle", visual: "secret" },
-  { title: "tutorialDifficultyTitle", visual: "difficulty" },
-  { title: "tutorialCoinTitle", visual: "coin" },
-  { title: "tutorialAttackTitle", visual: "attack" },
-  { title: "tutorialResultsTitle", visual: "results" },
-  { title: "tutorialDiscardTitle", visual: "discard" },
-  { title: "tutorialWinTitle", visual: "win" },
-];
+const heroSteps = ["difficulty", "coin", "attack"] as const;
 
 const landingSections = [
   { id: "novedades", label: "Novedades", Icon: Newspaper },
@@ -56,7 +47,7 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   }, []);
 
   useEffect(() => {
-    const interval = window.setInterval(() => setHeroSlide(current => (current + 1) % heroSlides.length), 6200);
+    const interval = window.setInterval(() => setHeroSlide(current => (current + 1) % heroSteps.length), 6200);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -97,21 +88,51 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
     </header>
 
     <section id="inicio" className="landing-hero relative isolate flex min-h-[100vh] items-center overflow-hidden px-6 py-24">
-      <div className="landing-hero__carousel" aria-hidden="true">
-        {heroSlides.map((slide, index) => <div key={slide.visual} className={`landing-hero__slide ${heroSlide === index ? "is-active" : ""}`}>
-          <div className="landing-hero__slide-visual"><TutorialVisual type={slide.visual} /></div>
-        </div>)}
+      <div className="landing-hero__art" aria-hidden="true">
+        <svg className="landing-hero__mascot" viewBox="0 0 640 470" role="img">
+          <defs>
+            <linearGradient id="hood-cloth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#263b61"/><stop offset=".55" stopColor="#101b35"/><stop offset="1" stopColor="#080e20"/></linearGradient>
+            <linearGradient id="wood-chest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#bd8750"/><stop offset="1" stopColor="#63391f"/></linearGradient>
+            <filter id="mascot-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="12"/></filter>
+          </defs>
+          <ellipse cx="320" cy="425" rx="190" ry="22" fill="#00e5ff" opacity=".13" filter="url(#mascot-glow)"/>
+          <path d="M150 405c10-115 42-205 114-252 19-13 37-20 56-20s37 7 56 20c72 47 104 137 114 252l-82 20H232z" fill="url(#hood-cloth)" stroke="#4c7198" strokeWidth="3"/>
+          <path d="M218 190c-6-83 36-145 102-153 66 8 108 70 102 153-27-31-61-48-102-48s-75 17-102 48z" fill="url(#hood-cloth)" stroke="#6384a7" strokeWidth="3"/>
+          <path d="M250 181c9-45 34-72 70-75 36 3 61 30 70 75-19-13-42-20-70-20s-51 7-70 20z" fill="#030814"/>
+          <path d="M246 278c-50 13-82 45-98 95l68 28c29-42 54-63 91-71M394 278c50 13 82 45 98 95l-68 28c-29-42-54-63-91-71" fill="none" stroke="#182a49" strokeWidth="43" strokeLinecap="round"/>
+          <path d="M219 363c-22-18-40-20-52-8-13 13-4 34 15 44l38 20c17 9 34-2 31-19-2-13-16-26-32-37zM421 363c22-18 40-20 52-8 13 13 4 34-15 44l-38 20c-17 9-34-2-31-19 2-13 16-26 32-37z" fill="#d6a17d" stroke="#f0c2a0" strokeWidth="3"/>
+          <path d="M238 327h164l-12 91H250z" fill="url(#wood-chest)" stroke="#e0ae73" strokeWidth="4"/>
+          <path d="M230 327c0-31 24-55 54-55h72c30 0 54 24 54 55z" fill="#9b653a" stroke="#e0ae73" strokeWidth="4"/>
+          <path d="M246 344h148M252 389h136" stroke="#4b2b1b" strokeWidth="5" opacity=".65"/>
+          <path d="M310 348h20v30h-20z" fill="#e6bd6b" stroke="#fff0b7" strokeWidth="2"/>
+          <path d="M320 353l6 10-6 10-6-10z" fill="#5b3b25"/>
+          <path d="M214 425h212" stroke="#00e5ff" strokeWidth="2" opacity=".35"/>
+        </svg>
       </div>
       <div className="landing-hero__backdrop" aria-hidden="true" />
       <div className="landing-hero__grid" aria-hidden="true" />
       <div className="landing-hero__content relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
-        <div className="landing-hero__gems mb-8 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+        <div className="landing-hero__tutorial" aria-label="Tutorial visual de tres pasos">
+          <div className="landing-hero__step-window">
+            <div className={`landing-hero__step ${heroSlide === 0 ? "is-active" : ""}`} aria-hidden={heroSlide !== 0}>
+              <div className="landing-hero__difficulty-art"><span/><span/><span/><span/><span/></div>
+            </div>
+            <div className={`landing-hero__step ${heroSlide === 1 ? "is-active" : ""}`} aria-hidden={heroSlide !== 1}>
+              <div className="landing-hero__coin-art">G</div>
+            </div>
+            <div className={`landing-hero__step ${heroSlide === 2 ? "is-active" : ""}`} aria-hidden={heroSlide !== 2}>
+              <div className="landing-hero__attack-art"><span>3</span><span>8</span><span>1</span><span>6</span><i>⚔</i></div>
+            </div>
+          </div>
+          <div className="landing-hero__gems" aria-label={`Paso ${heroSlide + 1} de 3`}>
+            {heroSteps.map((step, index) => <button key={step} type="button" className={`landing-hero__gem ${heroSlide === index ? "is-active" : ""}`} aria-label={`Mostrar paso ${index + 1}`} aria-current={heroSlide === index ? "step" : undefined} onClick={() => setHeroSlide(index)}><span className="home-gem"/></button>)}
+          </div>
+        </div>
         <div className="landing-hero__actions flex items-center justify-center gap-5">
           <Link href={user ? "/game" : "/login"} aria-label={user ? "Abrir lobby" : "Jugar"} title={user ? "Lobby" : "Jugar"} className="landing-hero__icon-action landing-hero__cta"><Gamepad2 aria-hidden="true" size={28} strokeWidth={1.6}/></Link>
           {!user && <Link href="/signup" aria-label="Crear cuenta" title="Crear cuenta" className="landing-hero__icon-action"><UserPlus aria-hidden="true" size={25} strokeWidth={1.6}/></Link>}
         </div>
       </div>
-      <span className="landing-hero__index" aria-hidden="true">01 / 04</span>
       <a href="#novedades" className="landing-hero__scroll-arrows" aria-label="Desplazarse a Novedades">
         {[0, 1, 2].map(index => <svg key={index} viewBox="0 0 24 15" aria-hidden="true"><path d="m3 3 9 9 9-9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
       </a>
