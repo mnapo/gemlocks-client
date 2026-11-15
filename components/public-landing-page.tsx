@@ -2,18 +2,43 @@
 
 import Link from "next/link";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { Heart, Home, MessageCircle, Newspaper, Trophy } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
+import { TutorialVisual } from "@/components/tutorial-modal";
+import type { TranslationKey } from "@/lib/i18n/translations";
 
 type User = { name: string; email: string };
 type NewsItem = { id: string; title: string; body: string; published_at: string };
 type Player = { rank_position: number; name: string; active_avatar: string | null; score: number };
 
+const heroSlides: { title: TranslationKey; visual: string }[] = [
+  { title: "tutorialCodeTitle", visual: "secret" },
+  { title: "tutorialDifficultyTitle", visual: "difficulty" },
+  { title: "tutorialCoinTitle", visual: "coin" },
+  { title: "tutorialAttackTitle", visual: "attack" },
+  { title: "tutorialResultsTitle", visual: "results" },
+  { title: "tutorialDiscardTitle", visual: "discard" },
+  { title: "tutorialWinTitle", visual: "win" },
+];
+
+const landingSections = [
+  { id: "inicio", label: "Inicio", Icon: Home },
+  { id: "novedades", label: "Novedades", Icon: Newspaper },
+  { id: "ranking", label: "Ranking", Icon: Trophy },
+  { id: "contacto", label: "Contacto", Icon: MessageCircle },
+  { id: "donaciones", label: "Donaciones", Icon: Heart },
+];
+
 export default function LandingPage({ user, logout }: { user: User | null; logout: ReactNode }) {
+  const { t } = useI18n();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [kind, setKind] = useState("sugerencia");
   const [message, setMessage] = useState("");
   const [contactStatus, setContactStatus] = useState("");
   const [sending, setSending] = useState(false);
+  const [heroSlide, setHeroSlide] = useState(0);
+  const [activeSection, setActiveSection] = useState("inicio");
 
   useEffect(() => {
     fetch("/api/news").then(r => r.ok ? r.json() : Promise.reject()).then(d => setNews(d.news ?? [])).catch(() => {});
@@ -27,6 +52,21 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
     updateParallax();
     window.addEventListener("scroll", updateParallax, { passive: true });
     return () => window.removeEventListener("scroll", updateParallax);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setHeroSlide(current => (current + 1) % heroSlides.length), 6200);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const sections = landingSections.map(section => document.getElementById(section.id)).filter((section): section is HTMLElement => Boolean(section));
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActiveSection(visible.target.id);
+    }, { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.15, 0.35, 0.6] });
+    sections.forEach(section => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   async function submitContact(e: FormEvent) {
@@ -43,19 +83,25 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   }
 
   return <main className="min-h-screen bg-[#0b0b0b] text-[#f5f5f5]">
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0b0b0b]/95 px-5 backdrop-blur">
-      <nav className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4">
-        <Link href="/" className="text-sm font-semibold tracking-tight">gemlocks</Link>
-        <div className="hidden items-center gap-5 text-xs text-white/55 md:flex">
-          <a href="#novedades" className="hover:text-white">Novedades</a><a href="#ranking" className="hover:text-white">Ranking</a><a href="#contacto" className="hover:text-white">Contacto</a><a href="#donaciones" className="hover:text-white">Donaciones</a>
+    <header className="landing-header sticky top-0 z-20 border-b border-white/10 bg-[#0b0b0b]/95 px-4 backdrop-blur">
+      <nav className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3">
+        <Link href="#inicio" aria-label="Gemlocks, inicio" className="shrink-0 text-sm font-semibold tracking-tight">gemlocks</Link>
+        <div className="landing-section-nav flex items-center gap-2" aria-label="Secciones de la landing">
+          {landingSections.map(({ id, label, Icon }) => <a key={id} href={`#${id}`} aria-label={label} title={label} aria-current={activeSection === id ? "location" : undefined} className="landing-section-nav__link"><Icon aria-hidden="true" size={17} strokeWidth={1.55} /></a>)}
         </div>
-        <div className="flex items-center gap-3 text-xs">
-          {user ? <><Link href="/game" className="max-w-32 truncate text-white/70 hover:text-white">{user.name || user.email}</Link><Link href="/game" className="bg-white px-3 py-2 font-medium text-black">Lobby</Link>{logout}</> : <><Link href="/login" className="text-white/65 hover:text-white">Ingresar</Link><Link href="/signup" className="bg-white px-3 py-2 font-medium text-black">Crear cuenta</Link></>}
+        <div className="flex shrink-0 items-center gap-2 text-xs sm:gap-3">
+          {user ? <><Link href="/game" className="hidden max-w-32 truncate text-white/70 hover:text-white sm:block">{user.name || user.email}</Link><Link href="/game" className="bg-white px-3 py-2 font-medium text-black">Lobby</Link>{logout}</> : <><Link href="/login" className="text-white/65 hover:text-white">Ingresar</Link><Link href="/signup" className="bg-white px-3 py-2 font-medium text-black">Crear cuenta</Link></>}
         </div>
       </nav>
     </header>
 
-    <section className="landing-hero relative isolate flex min-h-[100vh] items-center overflow-hidden px-6 py-24">
+    <section id="inicio" className="landing-hero relative isolate flex min-h-[100vh] items-center overflow-hidden px-6 py-24">
+      <div className="landing-hero__carousel" aria-hidden="true">
+        {heroSlides.map((slide, index) => <div key={slide.visual} className={`landing-hero__slide ${heroSlide === index ? "is-active" : ""}`}>
+          <div className="landing-hero__slide-visual"><TutorialVisual type={slide.visual} /></div>
+          <p className="landing-hero__slide-title">{t(slide.title)}</p>
+        </div>)}
+      </div>
       <div className="landing-hero__backdrop" aria-hidden="true" />
       <div className="landing-hero__grid" aria-hidden="true" />
       <div className="relative z-10 mx-auto w-full max-w-6xl">
@@ -67,7 +113,9 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
         <div className="landing-hero__gems mt-16 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
       </div>
       <span className="landing-hero__index" aria-hidden="true">01 / 04</span>
-      <span className="landing-hero__scroll" aria-hidden="true">SCROLL PARA EXPLORAR</span>
+      <a href="#novedades" className="landing-hero__scroll-arrows" aria-label="Desplazarse a Novedades">
+        {[0, 1, 2].map(index => <svg key={index} viewBox="0 0 24 15" aria-hidden="true"><path d="m3 3 9 9 9-9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+      </a>
     </section>
 
     <section id="novedades" className="scroll-mt-20 border-t border-white/10 px-6 py-20"><div className="mx-auto max-w-6xl"><p className="text-xs uppercase tracking-[0.25em] text-white/35">Actualizaciones</p><h2 className="mt-3 text-3xl font-medium">Novedades</h2>
