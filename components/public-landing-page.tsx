@@ -18,6 +18,15 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   useEffect(() => {
     fetch("/api/news").then(r => r.ok ? r.json() : Promise.reject()).then(d => setNews(d.news ?? [])).catch(() => {});
     fetch("/api/ranking?page=1").then(r => r.ok ? r.json() : Promise.reject()).then(d => setPlayers((d.players ?? []).slice(0, 5))).catch(() => {});
+    const updateParallax = () => {
+      const hero = document.querySelector<HTMLElement>(".landing-hero");
+      if (!hero) return;
+      const rect = hero.getBoundingClientRect();
+      hero.style.setProperty("--hero-parallax", `${Math.max(-80, Math.min(80, -rect.top * 0.16))}px`);
+    };
+    updateParallax();
+    window.addEventListener("scroll", updateParallax, { passive: true });
+    return () => window.removeEventListener("scroll", updateParallax);
   }, []);
 
   async function submitContact(e: FormEvent) {
@@ -46,13 +55,19 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
       </nav>
     </header>
 
-    <section className="mx-auto flex min-h-[75vh] max-w-6xl flex-col items-start justify-center px-6 py-24">
-      <p className="text-xs uppercase tracking-[0.35em] text-white/35">Un juego de deducción</p>
-      <h1 className="mt-5 max-w-3xl text-5xl font-medium leading-[1.08] tracking-tight sm:text-7xl">Raise your mind.</h1>
-      <p className="mt-6 max-w-xl text-base leading-7 text-white/50">Descubrí el código secreto, anticipá cada movimiento y poné a prueba tu lógica.</p>
-      <Link href={user ? "/game" : "/login"} className="mt-9 inline-flex items-center bg-white px-6 py-3.5 text-sm font-medium text-black transition hover:bg-white/90">Jugar <span className="ml-8" aria-hidden>↗</span></Link>
-      {!user && <p className="mt-4 text-xs text-white/35">Necesitás una cuenta para jugar. <Link href="/signup" className="text-white/65 underline underline-offset-4">Registrate gratis</Link></p>}
-      <div className="mt-16 flex gap-3" aria-hidden><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+    <section className="landing-hero relative isolate flex min-h-[100vh] items-center overflow-hidden px-6 py-24">
+      <div className="landing-hero__backdrop" aria-hidden="true" />
+      <div className="landing-hero__grid" aria-hidden="true" />
+      <div className="relative z-10 mx-auto w-full max-w-6xl">
+        <p className="landing-hero__eyebrow"><span className="landing-hero__status" /> UN JUEGO DE DEDUCCIÓN</p>
+        <h1 className="landing-hero__title mt-6 max-w-4xl">RAISE YOUR<br /><span>MIND.</span></h1>
+        <p className="mt-7 max-w-xl text-base leading-7 text-white/65 sm:text-lg">Descubrí el código secreto, anticipá cada movimiento y poné a prueba tu lógica.</p>
+        <Link href={user ? "/game" : "/login"} className="landing-hero__cta mt-10 inline-flex items-center gap-10 px-7 py-4 text-sm font-semibold">JUGAR <span aria-hidden>↗</span></Link>
+        {!user && <p className="mt-5 text-xs text-white/50">Necesitás una cuenta para jugar. <Link href="/signup" className="text-cyan-200 underline underline-offset-4">Registrate gratis</Link></p>}
+        <div className="landing-hero__gems mt-16 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+      </div>
+      <span className="landing-hero__index" aria-hidden="true">01 / 04</span>
+      <span className="landing-hero__scroll" aria-hidden="true">SCROLL PARA EXPLORAR</span>
     </section>
 
     <section id="novedades" className="scroll-mt-20 border-t border-white/10 px-6 py-20"><div className="mx-auto max-w-6xl"><p className="text-xs uppercase tracking-[0.25em] text-white/35">Actualizaciones</p><h2 className="mt-3 text-3xl font-medium">Novedades</h2>
