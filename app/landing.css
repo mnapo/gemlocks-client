@@ -95,3 +95,22 @@ body:has(.landing-page)::after { display:none !important; }
  .landing-page .landing-hero__title { font-size:clamp(34px,9.3vw,56px);white-space:nowrap; }
 }
 @media(prefers-reduced-motion:reduce) { .landing-page .landing-hero__backdrop { filter:none!important; } }
+
+
+/* Text-free hero: preserve the tutorial as visual-only artwork. */
+.landing-page .landing-hero__slide-title,
+.landing-page .landing-hero__title,
+.landing-page .landing-hero__eyebrow,
+.landing-page .landing-hero__content > p { display:none !important; }
+.landing-page .landing-hero__content { margin-top:clamp(275px,49vh,485px); }
+.landing-page .landing-hero__gems { margin-top:0; margin-bottom:clamp(22px,4vh,42px); }
+.landing-page .landing-hero__icon-action { display:inline-flex; width:66px; height:66px; align-items:center; justify-content:center; border:1px solid rgba(102,239,255,.78); border-radius:18px; color:#e9fcff; background:linear-gradient(145deg,rgba(12,35,70,.92),rgba(9,15,37,.92)); box-shadow:0 0 26px rgba(0,229,255,.2),inset 0 0 16px rgba(0,229,255,.08); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.landing-page .landing-hero__icon-action:hover { transform:translateY(-3px); border-color:#e9fcff; box-shadow:0 0 34px rgba(0,229,255,.36); }
+.landing-page .landing-hero__slide-visual .tutorial-difficulty { font-size:0 !important; color:transparent !important; }
+.landing-page .landing-hero__slide-visual .tutorial-result-label,
+.landing-page .landing-hero__slide-visual .tutorial-result-item > span:last-child { display:none !important; }
+@media(max-width:640px) {
+ .landing-page .landing-hero__content { margin-top:clamp(235px,41vh,360px); }
+ .landing-page .landing-hero__gems { margin-bottom:24px; }
+ .landing-page .landing-hero__icon-action { width:58px;height:58px;border-radius:15px; }
+}
