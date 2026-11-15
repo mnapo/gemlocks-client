@@ -83,7 +83,7 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
     finally { setSending(false); }
   }
 
-  return <main className="min-h-screen bg-[#0b0b0b] text-[#f5f5f5]">
+  return <main className="landing-page min-h-screen bg-[#0b0b0b] text-[#f5f5f5]">
     <header className="landing-header sticky top-0 z-20 border-b border-white/10 bg-[#0b0b0b]/95 px-4 backdrop-blur">
       <nav className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3">
         <Link href="#inicio" aria-label="Gemlocks, inicio" className="landing-brand shrink-0" title="Gemlocks"><svg viewBox="0 0 48 48" role="img" aria-label="Cofre Gemlocks"><path d="M8 17.5 24 9l16 8.5v20H8z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 17.5h32M13 17.5v20m22-20v20M18 9v-3h12v3M24 17.5v20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M20.5 25h7v7h-7z" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="m24 25 2 3.5-2 3.5-2-3.5z" fill="currentColor"/></svg></Link>
