@@ -18,6 +18,15 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   useEffect(() => {
     fetch("/api/news").then(r => r.ok ? r.json() : Promise.reject()).then(d => setNews(d.news ?? [])).catch(() => {});
     fetch("/api/ranking?page=1").then(r => r.ok ? r.json() : Promise.reject()).then(d => setPlayers((d.players ?? []).slice(0, 5))).catch(() => {});
+    const updateParallax = () => {
+      const hero = document.querySelector<HTMLElement>(".landing-hero");
+      if (!hero) return;
+      const rect = hero.getBoundingClientRect();
+      hero.style.setProperty("--hero-parallax", `${Math.max(-80, Math.min(80, -rect.top * 0.16))}px`);
+    };
+    updateParallax();
+    window.addEventListener("scroll", updateParallax, { passive: true });
+    return () => window.removeEventListener("scroll", updateParallax);
   }, []);
 
   async function submitContact(e: FormEvent) {
