@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { Heart, Home, MessageCircle, Newspaper, Trophy } from "lucide-react";
+import { ArrowUp, Heart, MessageCircle, Newspaper, Trophy } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { TutorialVisual } from "@/components/tutorial-modal";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -22,7 +22,6 @@ const heroSlides: { title: TranslationKey; visual: string }[] = [
 ];
 
 const landingSections = [
-  { id: "inicio", label: "Inicio", Icon: Home },
   { id: "novedades", label: "Novedades", Icon: Newspaper },
   { id: "ranking", label: "Ranking", Icon: Trophy },
   { id: "contacto", label: "Contacto", Icon: MessageCircle },
@@ -38,7 +37,8 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   const [contactStatus, setContactStatus] = useState("");
   const [sending, setSending] = useState(false);
   const [heroSlide, setHeroSlide] = useState(0);
-  const [activeSection, setActiveSection] = useState("inicio");
+  const [activeSection, setActiveSection] = useState("novedades");
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     fetch("/api/news").then(r => r.ok ? r.json() : Promise.reject()).then(d => setNews(d.news ?? [])).catch(() => {});
@@ -48,6 +48,7 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
       if (!hero) return;
       const rect = hero.getBoundingClientRect();
       hero.style.setProperty("--hero-parallax", `${Math.max(-80, Math.min(80, -rect.top * 0.16))}px`);
+      setShowBackToTop(window.scrollY > 280);
     };
     updateParallax();
     window.addEventListener("scroll", updateParallax, { passive: true });
@@ -85,7 +86,7 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
   return <main className="min-h-screen bg-[#0b0b0b] text-[#f5f5f5]">
     <header className="landing-header sticky top-0 z-20 border-b border-white/10 bg-[#0b0b0b]/95 px-4 backdrop-blur">
       <nav className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3">
-        <Link href="#inicio" aria-label="Gemlocks, inicio" className="shrink-0 text-sm font-semibold tracking-tight">gemlocks</Link>
+        <Link href="#inicio" aria-label="Gemlocks, inicio" className="landing-brand shrink-0" title="Gemlocks"><svg viewBox="0 0 48 48" role="img" aria-label="Cofre Gemlocks"><path d="M8 17.5 24 9l16 8.5v20H8z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 17.5h32M13 17.5v20m22-20v20M18 9v-3h12v3M24 17.5v20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M20.5 25h7v7h-7z" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="m24 25 2 3.5-2 3.5-2-3.5z" fill="currentColor"/></svg></Link>
         <div className="landing-section-nav flex items-center gap-2" aria-label="Secciones de la landing">
           {landingSections.map(({ id, label, Icon }) => <a key={id} href={`#${id}`} aria-label={label} title={label} aria-current={activeSection === id ? "location" : undefined} className="landing-section-nav__link"><Icon aria-hidden="true" size={17} strokeWidth={1.55} /></a>)}
         </div>
@@ -104,13 +105,13 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
       </div>
       <div className="landing-hero__backdrop" aria-hidden="true" />
       <div className="landing-hero__grid" aria-hidden="true" />
-      <div className="relative z-10 mx-auto w-full max-w-6xl">
+      <div className="landing-hero__content relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
+        <h1 className="landing-hero__title">RAISE YOUR MIND.</h1>
         <p className="landing-hero__eyebrow"><span className="landing-hero__status" /> UN JUEGO DE DEDUCCIÓN</p>
-        <h1 className="landing-hero__title mt-6 max-w-4xl">RAISE YOUR<br /><span>MIND.</span></h1>
-        <p className="mt-7 max-w-xl text-base leading-7 text-white/65 sm:text-lg">Descubrí el código secreto, anticipá cada movimiento y poné a prueba tu lógica.</p>
-        <Link href={user ? "/game" : "/login"} className="landing-hero__cta mt-10 inline-flex items-center gap-10 px-7 py-4 text-sm font-semibold">JUGAR <span aria-hidden>↗</span></Link>
-        {!user && <p className="mt-5 text-xs text-white/50">Necesitás una cuenta para jugar. <Link href="/signup" className="text-cyan-200 underline underline-offset-4">Registrate gratis</Link></p>}
-        <div className="landing-hero__gems mt-16 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+        <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg">Descubrí el código secreto, anticipá cada movimiento y poné a prueba tu lógica.</p>
+        <Link href={user ? "/game" : "/login"} className="landing-hero__cta mt-7 inline-flex items-center gap-10 px-7 py-4 text-sm font-semibold">JUGAR <span aria-hidden>↗</span></Link>
+        {!user && <p className="mt-4 text-xs text-white/70">Necesitás una cuenta para jugar. <Link href="/signup" className="text-cyan-200 underline underline-offset-4">Registrate gratis</Link></p>}
+        <div className="landing-hero__gems mt-8 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
       </div>
       <span className="landing-hero__index" aria-hidden="true">01 / 04</span>
       <a href="#novedades" className="landing-hero__scroll-arrows" aria-label="Desplazarse a Novedades">
