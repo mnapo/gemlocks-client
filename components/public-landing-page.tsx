@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { ArrowUp, Heart, MessageCircle, Newspaper, Trophy } from "lucide-react";
+import { ArrowUp, Heart, MessageCircle, Newspaper, Trophy, Gamepad2, UserPlus } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { TutorialVisual } from "@/components/tutorial-modal";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -100,18 +100,16 @@ export default function LandingPage({ user, logout }: { user: User | null; logou
       <div className="landing-hero__carousel" aria-hidden="true">
         {heroSlides.map((slide, index) => <div key={slide.visual} className={`landing-hero__slide ${heroSlide === index ? "is-active" : ""}`}>
           <div className="landing-hero__slide-visual"><TutorialVisual type={slide.visual} /></div>
-          <p className="landing-hero__slide-title">{t(slide.title)}</p>
         </div>)}
       </div>
       <div className="landing-hero__backdrop" aria-hidden="true" />
       <div className="landing-hero__grid" aria-hidden="true" />
       <div className="landing-hero__content relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
-        <h1 className="landing-hero__title">RAISE YOUR MIND.</h1>
-        <p className="landing-hero__eyebrow"><span className="landing-hero__status" /> UN JUEGO DE DEDUCCIÓN</p>
-        <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg">Descubrí el código secreto, anticipá cada movimiento y poné a prueba tu lógica.</p>
-        <Link href={user ? "/game" : "/login"} className="landing-hero__cta mt-7 inline-flex items-center gap-10 px-7 py-4 text-sm font-semibold">JUGAR <span aria-hidden>↗</span></Link>
-        {!user && <p className="mt-4 text-xs text-white/70">Necesitás una cuenta para jugar. <Link href="/signup" className="text-cyan-200 underline underline-offset-4">Registrate gratis</Link></p>}
-        <div className="landing-hero__gems mt-8 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+        <div className="landing-hero__gems mb-8 flex items-center gap-4" aria-hidden="true"><span className="home-gem"/><span className="home-gem"/><span className="home-gem"/></div>
+        <div className="landing-hero__actions flex items-center justify-center gap-5">
+          <Link href={user ? "/game" : "/login"} aria-label={user ? "Abrir lobby" : "Jugar"} title={user ? "Lobby" : "Jugar"} className="landing-hero__icon-action landing-hero__cta"><Gamepad2 aria-hidden="true" size={28} strokeWidth={1.6}/></Link>
+          {!user && <Link href="/signup" aria-label="Crear cuenta" title="Crear cuenta" className="landing-hero__icon-action"><UserPlus aria-hidden="true" size={25} strokeWidth={1.6}/></Link>}
+        </div>
       </div>
       <span className="landing-hero__index" aria-hidden="true">01 / 04</span>
       <a href="#novedades" className="landing-hero__scroll-arrows" aria-label="Desplazarse a Novedades">
